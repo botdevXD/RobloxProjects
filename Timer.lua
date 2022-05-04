@@ -1,6 +1,4 @@
-local Timer = {
-	LoadPosition = 0
-}
+local Timer = {}
 Timer.__index = Timer
 
 function Timer.new()
