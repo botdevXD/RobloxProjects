@@ -97,6 +97,21 @@ end
 function Timer:Destroy()
 	self:EndCountDown()
 	self:EndTimer()
+	
+	for Index, Key in pairs(self) do
+		if typeof(Key) == "Instance" then
+			if Key:IsA("BindableEvent") then
+				Key:Destroy()
+				self[Index] = nil
+			end
+		end
+	end
+	
+	self.Timer = nil
+	self.Countdown = nil
+
+	self.TimerUUID = nil
+	self.CountDownUUID = nil
 end
 
 return Timer
