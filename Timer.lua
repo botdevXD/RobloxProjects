@@ -63,6 +63,10 @@ function Timer:StartTimer(EndSeconds)
 	self.TimerUUID = UUID
 	
 	task.spawn(function()
+		
+		self._Timer:Fire("timer_update", TotalSeconds)
+		task.wait(1)
+		
 		repeat
 			TotalSeconds = math.clamp(TotalSeconds, 0, EndSeconds)
 			TotalSeconds += 1
@@ -75,8 +79,6 @@ function Timer:StartTimer(EndSeconds)
 
 			task.wait(1)
 		until self.TimerUUID == nil or self.TimerUUID ~= UUID
-		
-		self._Timer:Fire("timer_update", TotalSeconds)
 		
 		if self.TimerUUID == nil or self.TimerUUID ~= UUID then
 			self._Timer:Fire("stopped")
