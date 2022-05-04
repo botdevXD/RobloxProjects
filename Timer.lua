@@ -43,9 +43,9 @@ function Timer:StartCountDown(StartSeconds)
 			self._Countdown:Fire("stopped")
 		elseif self.CountDownUUID == UUID then
 			self._Countdown:Fire("finished")
+			
+			self.CountDownUUID = nil
 		end
-		
-		self.CountDownUUID = nil
 	end)
 end
 
@@ -82,9 +82,9 @@ function Timer:StartTimer(EndSeconds)
 			self._Timer:Fire("stopped")
 		elseif self.TimerUUID == UUID then
 			self._Timer:Fire("finished")
+			
+			self.TimerUUID = nil
 		end
-
-		self.TimerUUID = nil
 	end)
 end
 
