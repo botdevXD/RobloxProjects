@@ -20,12 +20,10 @@ end
 
 function Timer:StartCountDown(StartSeconds)
 	self:EndCountDown()
-	
+	local UUID = Timer.Services.HttpService:GenerateGUID(false)
 	local TotalSeconds = StartSeconds
 	
 	task.spawn(function()
-		local UUID = Timer.Services.HttpService:GenerateGUID(false)
-		
 		self.CountDownUUID = UUID
 		
 		self._Countdown:Fire("count_down_update", TotalSeconds)
@@ -58,11 +56,40 @@ function Timer:EndCountDown()
 end
 
 function Timer:StartTimer(EndSeconds)
+	self:EndTimer()
+	local UUID = Timer.Services.HttpService:GenerateGUID(false)
+	local TotalSeconds = 0
+	
+	self.TimerUUID = UUID
+	
+	task.spawn(function()
+		repeat
+			TotalSeconds = math.clamp(TotalSeconds, 0, EndSeconds)
+			TotalSeconds += 1
+			
+			self._Timer:Fire("timer_update", TotalSeconds)
+			
+			if TotalSeconds >= EndSeconds then
+				break
+			end
 
+			task.wait(1)
+		until self.TimerUUID == nil or self.TimerUUID ~= UUID
+		
+		self._Timer:Fire("timer_update", TotalSeconds)
+		
+		if self.TimerUUID == nil or self.TimerUUID ~= UUID then
+			self._Timer:Fire("stopped")
+		elseif self.TimerUUID == UUID then
+			self._Timer:Fire("finished")
+		end
+
+		self.TimerUUID = nil
+	end)
 end
 
 function Timer:EndTimer()
-
+	self.TimerUUID = nil
 end
 
 function Timer:Destroy()
