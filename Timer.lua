@@ -1,4 +1,6 @@
-local Timer = {}
+local Timer = {
+	LoadPosition = 0
+}
 Timer.__index = Timer
 
 function Timer.new()
@@ -9,11 +11,40 @@ function Timer.new()
 	
 	self.Timer = self._Timer.Event
 	self.Countdown = self._Countdown.Event
+
+	self.TimerPause = false
+	self.CountdownPause = false
+	self.AllowedToResumeCountdown = true
+	self.AllowedToResumeTimer = true
 	
 	self.TimerUUID = nil
 	self.CountDownUUID = nil
 	
 	return self
+end
+
+function Timer:CountDownResumeAbleToggle(bool)
+	self.AllowedToResumeCountdown = bool
+end
+
+function Timer:TimerResumeAbleToggle(bool)
+	self.AllowedToResumeTimer = bool
+end
+
+function Timer:CanResumeCountDown()
+	return self.AllowedToResumeCountdown
+end
+
+function Timer:CanResumeTimer()
+	return self.AllowedToResumeTimer
+end
+
+function Timer:PauseCountDown()
+	self.CountdownPause = true
+end
+
+function Timer:ResumeCountDown()
+	self.CountdownPause = false
 end
 
 function Timer:StartCountDown(StartSeconds)
@@ -24,16 +55,19 @@ function Timer:StartCountDown(StartSeconds)
 	task.spawn(function()
 		self.CountDownUUID = UUID
 		
+		self._Countdown:Fire("started")
 		self._Countdown:Fire("count_down_update", TotalSeconds)
 		task.wait(1)
 		
 		repeat
-			TotalSeconds = math.clamp(TotalSeconds - 1, 0, math.huge)
-			
-			self._Countdown:Fire("count_down_update", TotalSeconds)
-			
-			if TotalSeconds <= 0 then
-				break
+			if self.CountdownPause == false then
+				TotalSeconds = math.clamp(TotalSeconds - 1, 0, math.huge)
+				
+				self._Countdown:Fire("count_down_update", TotalSeconds)
+				
+				if TotalSeconds <= 0 then
+					break
+				end
 			end
 			
 			task.wait(1)
@@ -50,7 +84,16 @@ function Timer:StartCountDown(StartSeconds)
 end
 
 function Timer:EndCountDown()
+	self.CountdownPause = false
 	self.CountDownUUID = nil
+end
+
+function Timer:PauseTimer()
+	self.TimerPause = true
+end
+
+function Timer:ResumeTimer()
+	self.TimerPause = false
 end
 
 function Timer:StartTimer(EndSeconds)
@@ -62,17 +105,20 @@ function Timer:StartTimer(EndSeconds)
 	
 	task.spawn(function()
 		
+		self._Timer:Fire("started")
 		self._Timer:Fire("timer_update", TotalSeconds)
 		task.wait(1)
 		
 		repeat
-			TotalSeconds = math.clamp(TotalSeconds, 0, EndSeconds)
-			TotalSeconds += 1
-			
-			self._Timer:Fire("timer_update", TotalSeconds)
-			
-			if TotalSeconds >= EndSeconds then
-				break
+			if self.TimerPause == false then
+				TotalSeconds = math.clamp(TotalSeconds, 0, EndSeconds)
+				TotalSeconds += 1
+				
+				self._Timer:Fire("timer_update", TotalSeconds)
+				
+				if TotalSeconds >= EndSeconds then
+					break
+				end
 			end
 
 			task.wait(1)
@@ -89,6 +135,7 @@ function Timer:StartTimer(EndSeconds)
 end
 
 function Timer:EndTimer()
+	self.TimerPause = false
 	self.TimerUUID = nil
 end
 
