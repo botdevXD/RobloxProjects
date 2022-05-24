@@ -1,5 +1,7 @@
 -- Made by _Ben#2902 / 0x74_Dev
-local AnimationController = {}
+local AnimationController = {
+    LoadPosition = 0
+}
 AnimationController.__index = AnimationController
 local Controllers = getmetatable(newproxy(true))
 
@@ -68,6 +70,20 @@ function AnimationController:Get(Name)
         return warn("Animation controller doesn't exist")
     end
     
+    return self
+end
+
+function AnimationController:Finished(Func)
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+    if Controller ~= nil then
+        if self.FinishedQueue ~= nil then
+            self.FinishedQueue[#self.FinishedQueue + 1] = Func
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+
     return self
 end
 
@@ -174,6 +190,8 @@ function AnimationController:Add(AnimationData)
                 _self.Operator = self.Operator
                 _self.AnimationName = AnimationData.Name
                 _self.AnimationId = AnimationData.ID
+                _self.FinishedQueue = {}
+                _self.FinishedSignal = nil
 
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
