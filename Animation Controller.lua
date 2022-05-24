@@ -1,8 +1,11 @@
 -- Made by _Ben#2902 / 0x74_Dev
+local AnimationFunctions = {}
 local AnimationController = {
     LoadPosition = 0
 }
 AnimationController.__index = AnimationController
+AnimationFunctions.__index = AnimationFunctions
+
 local Controllers = getmetatable(newproxy(true))
 
 local function DestroySignals(Table)
@@ -53,7 +56,88 @@ function AnimationController.GetController(Operator, scope)
 end
 
 -----------------------------------------
--- Animation functions
+-- Animation functions (None Controller)
+function AnimationFunctions:Finished(Func)
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+    if Controller ~= nil then
+        if self.FinishedQueue ~= nil then
+            self.FinishedQueue[#self.FinishedQueue + 1] = Func
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+
+    return self
+end
+
+function AnimationFunctions:Play()
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+    if Controller ~= nil then
+        DestroySignals(self)
+
+        if self.AnimationInstance ~= nil then
+            self.FinishedSignal = self.AnimationInstance.Changed:Connect(function()
+                if not self.AnimationInstance.IsPlaying then
+                    for _, Func in ipairs(self.FinishedQueue) do
+                        if type(Func) == "function" then
+                            pcall(Func)
+                        end
+                    end
+                end
+            end)
+
+            self.AnimationInstance:Play()
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+
+    return self
+end
+
+function AnimationFunctions:Stop()
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+    if Controller ~= nil then
+        DestroySignals(self)
+
+        if self.AnimationInstance ~= nil then
+            self.AnimationInstance:Stop()
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+    return self
+end
+
+function AnimationFunctions:Pause()
+    return self -- Coming soon
+end
+
+function AnimationFunctions:Resume()
+    return self -- Coming soon
+end
+
+function AnimationFunctions:Remove()
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+    if Controller ~= nil then
+        if self.AnimationName ~= nil then
+            DestroySignals(self)
+            self:Stop()
+
+            rawset(Controller.Animations, self.AnimationName, nil)
+            table.clear(self)
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+    
+    return Controller
+end
+-------------------------------------------
+-- Animation functions (Controller)
 function AnimationController:Exists(Name)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
@@ -82,25 +166,10 @@ function AnimationController:Get(Name)
     return self
 end
 
-function AnimationController:Finished(Func)
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-
-    if Controller ~= nil then
-        if self.FinishedQueue ~= nil then
-            self.FinishedQueue[#self.FinishedQueue + 1] = Func
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-
-    return self
-end
-
 function AnimationController:StopAll()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        self:Stop()
         for Animation_IDX, Animation in pairs(Controller.Animations) do
             if Animation.AnimationInstance ~= nil then
                 DestroySignals(Animation)
@@ -112,73 +181,6 @@ function AnimationController:StopAll()
     end
 end
 
-function AnimationController:Play()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-
-    if Controller ~= nil then
-        DestroySignals(self)
-
-        if self.AnimationInstance ~= nil then
-            self.FinishedSignal = self.AnimationInstance.Changed:Connect(function()
-                if not self.AnimationInstance.IsPlaying then
-                    for _, Func in ipairs(self.FinishedQueue) do
-                        if type(Func) == "function" then
-                            pcall(Func)
-                        end
-                    end
-                end
-            end)
-
-            self.AnimationInstance:Play()
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-
-    return self
-end
-
-function AnimationController:Stop()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        DestroySignals(self)
-
-        if self.AnimationInstance ~= nil then
-            self.AnimationInstance:Stop()
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-    return self
-end
-
-function AnimationController:Pause()
-    return self -- Coming soon
-end
-
-function AnimationController:Resume()
-    return self -- Coming soon
-end
-
-function AnimationController:Remove()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-
-    if Controller ~= nil then
-        if self.AnimationName ~= nil then
-            DestroySignals(self)
-            self:Stop()
-
-            rawset(Controller.Animations, self.AnimationName, nil)
-            table.clear(self)
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-    
-    return Controller
-end
------------------------------------------
--- Controller functions
 function AnimationController:Reload()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
@@ -204,6 +206,7 @@ function AnimationController:Reload()
         return warn("Animation controller doesn't exist")
     end
 end
+
 function AnimationController:Add(AnimationData)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
@@ -213,7 +216,7 @@ function AnimationController:Add(AnimationData)
             if self.Operator ~= nil and AnimationData.Name ~= nil then
                 local Character = self.Operator.Character
                 local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
-                local _self = setmetatable({}, AnimationController)
+                local _self = setmetatable({}, AnimationFunctions)
                 
                 _self.scope = self.scope
                 _self.Operator = self.Operator
