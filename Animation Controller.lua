@@ -5,6 +5,15 @@ local AnimationController = {
 AnimationController.__index = AnimationController
 local Controllers = getmetatable(newproxy(true))
 
+local function DestroySignals(Table)
+    Table = type(Table) == "table" and Table or {}
+    for I, V in pairs(Table) do
+        if typeof(V) == "RBXScriptConnection" then
+            V:Disconnect()
+        end
+    end
+end
+
 function AnimationController.new(Operator, scope)
     scope = type(scope) == "string" and scope or ""
     if Controllers[tostring(Operator) .. "+" .. scope] ~= nil then return Controllers[tostring(Operator) .. "+" .. scope] end
@@ -94,6 +103,7 @@ function AnimationController:StopAll()
         self:Stop()
         for Animation_IDX, Animation in pairs(Controller.Animations) do
             if Animation.AnimationInstance ~= nil then
+                DestroySignals(Animation)
                 Animation.AnimationInstance:Stop()
             end
         end
@@ -106,6 +116,8 @@ function AnimationController:Play()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
+        DestroySignals(self)
+
         if self.AnimationInstance ~= nil then
             self.AnimationInstance:Play()
         end
@@ -119,10 +131,11 @@ end
 function AnimationController:Stop()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
+        DestroySignals(self)
+
         if self.AnimationInstance ~= nil then
             self.AnimationInstance:Stop()
         end
-        
     else
         return warn("Animation controller doesn't exist")
     end
@@ -130,11 +143,11 @@ function AnimationController:Stop()
 end
 
 function AnimationController:Pause()
-    return self
+    return self -- Coming soon
 end
 
 function AnimationController:Resume()
-    return self
+    return self -- Coming soon
 end
 
 function AnimationController:Remove()
@@ -142,6 +155,9 @@ function AnimationController:Remove()
 
     if Controller ~= nil then
         if self.AnimationName ~= nil then
+            DestroySignals(self)
+            self:Stop()
+            
             rawset(Controller.Animations, self.AnimationName, nil)
             table.clear(self)
         end
