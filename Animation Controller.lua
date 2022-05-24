@@ -104,7 +104,7 @@ function AnimationController:StopAll()
         for Animation_IDX, Animation in pairs(Controller.Animations) do
             if Animation.AnimationInstance ~= nil then
                 DestroySignals(Animation)
-                Animation.AnimationInstance:Stop()
+                Animation:Stop()
             end
         end
     else
@@ -157,7 +157,7 @@ function AnimationController:Remove()
         if self.AnimationName ~= nil then
             DestroySignals(self)
             self:Stop()
-            
+
             rawset(Controller.Animations, self.AnimationName, nil)
             table.clear(self)
         end
