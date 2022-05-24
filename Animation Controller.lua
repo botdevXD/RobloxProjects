@@ -119,6 +119,16 @@ function AnimationController:Play()
         DestroySignals(self)
 
         if self.AnimationInstance ~= nil then
+            self.FinishedSignal = self.AnimationInstance.Changed:Connect(function()
+                if not self.AnimationInstance.IsPlaying then
+                    for _, Func in ipairs(self.FinishedQueue) do
+                        if type(Func) == "function" then
+                            pcall(Func)
+                        end
+                    end
+                end
+            end)
+
             self.AnimationInstance:Play()
         end
     else
@@ -178,6 +188,9 @@ function AnimationController:Reload()
         if Humanoid ~= nil then
             for Animation_IDX, Animation in pairs(Controller.Animations) do
                 if type(Animation) == "table" then
+                    Animation:Stop()
+                    DestroySignals(Animation)
+                    
                     local ANI_OBJ = Instance.new("Animation", nil)
                     ANI_OBJ.AnimationId = rawget(Controller.Animations[Animation_IDX], "AnimationId")
                     
@@ -212,8 +225,10 @@ function AnimationController:Add(AnimationData)
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
                     ANI_OBJ.AnimationId = AnimationData.ID
+                    
+                    local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
 
-                    rawset(_self, "AnimationInstance", Humanoid:LoadAnimation(ANI_OBJ))
+                    rawset(_self, "AnimationInstance", Loaded)
                     
                     ANI_OBJ:Destroy()
                 end
