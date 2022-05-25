@@ -134,6 +134,11 @@ end
 function AnimationFunctions:Pause()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
+        if self.OldAnimationSpeed == nil then
+            self.OldAnimationSpeed = self.AnimationInstance.Speed
+        end
+
+        self.AnimationInstance:AdjustSpeed(0)
     else
         return warn("Animation controller doesn't exist")
     end
@@ -143,6 +148,10 @@ end
 function AnimationFunctions:Resume()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
+        if self.OldAnimationSpeed ~= nil then
+            self.AnimationInstance:AdjustSpeed(self.OldAnimationSpeed)
+            self.OldAnimationSpeed = nil
+        end
     else
         return warn("Animation controller doesn't exist")
     end
