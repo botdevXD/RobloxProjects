@@ -75,7 +75,7 @@ function AnimationFunctions:Play()
         self:DestroySignals()
 
         if self.AnimationInstance ~= nil then
-            self.FinishedSignal = self.AnimationInstance.Changed:Connect(function()
+            table.insert(self.Signals, self.AnimationInstance.Changed:Connect(function()
                 if not self.AnimationInstance.IsPlaying then
                     for _, Func in ipairs(self.FinishedQueue) do
                         if type(Func) == "function" then
@@ -83,7 +83,7 @@ function AnimationFunctions:Play()
                         end
                     end
                 end
-            end)
+            end))
 
             self.AnimationInstance:Play()
         end
@@ -242,7 +242,6 @@ function AnimationController:Add(AnimationData)
                 _self.AnimationName = AnimationData.Name
                 _self.AnimationId = AnimationData.ID
                 _self.FinishedQueue = {}
-                _self.FinishedSignal = nil
                 _self.Signals = {}
 
                 if Humanoid ~= nil then
