@@ -50,8 +50,17 @@ end
 
 -----------------------------------------
 -- Animation functions (None Controller)
-function AnimationFunctions:KeyEventHit(Func)
-    
+function AnimationFunctions:AddMarkerHit(MarkerName, Func)
+    -- Start here
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+    if Controller ~= nil then
+        self.Markers[MarkerName] = Func
+    else
+        return warn("Animation controller doesn't exist")
+    end
+
+    return self
 end
 
 function AnimationFunctions:Finished(Func)
@@ -84,6 +93,20 @@ function AnimationFunctions:Play()
                     end
                 end
             end))
+
+            table.foreach(self.Markers, function(Index, Value)
+                Index = tostring(Index)
+
+                if type(Value) == "function" and self.Signals[Index] == nil then
+                    self.Signals[Index] = self.AnimationInstance:GetMarkerReachedSignal(Index):Connect(function(...)
+                        for MarkerName, _ in pairs(self.Markers) do
+                            if tostring(MarkerName) == Index then
+                                return Value(...)
+                            end
+                        end
+                    end)
+                end
+            end)
 
             self.AnimationInstance:Play()
         end
@@ -243,11 +266,12 @@ function AnimationController:Add(AnimationData)
                 _self.AnimationId = AnimationData.ID
                 _self.FinishedQueue = {}
                 _self.Signals = {}
+                _self.Markers = {}
 
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
                     ANI_OBJ.AnimationId = AnimationData.ID
-                    
+
                     local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
 
                     rawset(_self, "AnimationInstance", Loaded)
