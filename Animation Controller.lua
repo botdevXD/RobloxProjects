@@ -216,6 +216,16 @@ function AnimationController:Reload()
     end
 end
 
+function AnimationController:Destroy()
+    for _, Animation in pairs(type(self.Animations) == "table" and self.Animations or {}) do
+        Animation:DestroySignals()
+        Animation:Remove()
+    end
+
+    table.clear(type(self.Animations) == "table" and self.Animations or {})
+    table.clear(self)
+end
+
 function AnimationController:Add(AnimationData)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
