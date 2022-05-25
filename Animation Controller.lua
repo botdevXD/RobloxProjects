@@ -132,11 +132,21 @@ function AnimationFunctions:Stop()
 end
 
 function AnimationFunctions:Pause()
-    return self -- Coming soon
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+    if Controller ~= nil then
+    else
+        return warn("Animation controller doesn't exist")
+    end
+    return self
 end
 
 function AnimationFunctions:Resume()
-    return self -- Coming soon
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+    if Controller ~= nil then
+    else
+        return warn("Animation controller doesn't exist")
+    end
+    return self
 end
 
 function AnimationFunctions:Remove()
