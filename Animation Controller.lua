@@ -1,21 +1,14 @@
 -- Made by _Ben#2902 / 0x74_Dev
 local AnimationFunctions = {}
+local AnimationEndTrackFunctions = {}
 local AnimationController = {
     LoadPosition = 0
 }
 AnimationController.__index = AnimationController
 AnimationFunctions.__index = AnimationFunctions
+AnimationEndTrackFunctions.__index = AnimationEndTrackFunctions
 
 local Controllers = getmetatable(newproxy(true))
-
-local function DestroySignals(Table)
-    Table = type(Table) == "table" and Table or {}
-    for I, V in pairs(Table) do
-        if typeof(V) == "RBXScriptConnection" then
-            V:Disconnect()
-        end
-    end
-end
 
 function AnimationController.new(Operator, scope)
     scope = type(scope) == "string" and scope or ""
@@ -57,6 +50,10 @@ end
 
 -----------------------------------------
 -- Animation functions (None Controller)
+function AnimationFunctions:KeyEventHit(Func)
+    
+end
+
 function AnimationFunctions:Finished(Func)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
@@ -75,7 +72,7 @@ function AnimationFunctions:Play()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        DestroySignals(self)
+        self:DestroySignals()
 
         if self.AnimationInstance ~= nil then
             self.FinishedSignal = self.AnimationInstance.Changed:Connect(function()
@@ -100,7 +97,7 @@ end
 function AnimationFunctions:Stop()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
-        DestroySignals(self)
+        self:DestroySignals()
 
         if self.AnimationInstance ~= nil then
             self.AnimationInstance:Stop()
@@ -124,7 +121,7 @@ function AnimationFunctions:Remove()
 
     if Controller ~= nil then
         if self.AnimationName ~= nil then
-            DestroySignals(self)
+            self:DestroySignals()
             self:Stop()
 
             rawset(Controller.Animations, self.AnimationName, nil)
@@ -135,6 +132,18 @@ function AnimationFunctions:Remove()
     end
     
     return Controller
+end
+
+function AnimationFunctions:DestroySignals()
+    if type(self.Signals) == "table" then
+        for I, V in pairs(self.Signals) do
+            if typeof(V) == "RBXScriptConnection" then
+                V:Disconnect()
+            end
+        end
+
+        table.clear(self.Signals)
+    end
 end
 -------------------------------------------
 -- Animation functions (Controller)
@@ -172,7 +181,7 @@ function AnimationController:StopAll()
     if Controller ~= nil then
         for Animation_IDX, Animation in pairs(Controller.Animations) do
             if Animation.AnimationInstance ~= nil then
-                DestroySignals(Animation)
+                Animation:DestroySignals()
                 Animation:Stop()
             end
         end
@@ -191,7 +200,7 @@ function AnimationController:Reload()
             for Animation_IDX, Animation in pairs(Controller.Animations) do
                 if type(Animation) == "table" then
                     Animation:Stop()
-                    DestroySignals(Animation)
+                    Animation:DestroySignals()
                     
                     local ANI_OBJ = Instance.new("Animation", nil)
                     ANI_OBJ.AnimationId = rawget(Controller.Animations[Animation_IDX], "AnimationId")
@@ -224,6 +233,7 @@ function AnimationController:Add(AnimationData)
                 _self.AnimationId = AnimationData.ID
                 _self.FinishedQueue = {}
                 _self.FinishedSignal = nil
+                _self.Signals = {}
 
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
