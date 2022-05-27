@@ -142,10 +142,9 @@ function AnimationFunctions:Play()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        self:DestroySignals()
-
 		if self.AnimationInstance ~= nil then
 			if not self.AnimationInstance.IsPlaying then
+                self:DestroySignals()
 	            table.insert(self.Signals, self.AnimationInstance.Changed:Connect(function()
 	                if not self.AnimationInstance.IsPlaying then
 	                    for _, Func in ipairs(self.FinishedQueue) do
