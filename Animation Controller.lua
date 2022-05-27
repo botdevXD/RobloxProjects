@@ -22,6 +22,8 @@
     end)
 
     TestAnimation:Stop() -- Completely stops the animation and cannot be resumed you must replay it using the 'Play' (Function)
+
+    TestAnimation:Remove() -- Completely destroys the animation and it's contents and stops the animation (you must create a new animation after using this function!)
 ]]
 
 local AnimationFunctions = {}
