@@ -21,7 +21,7 @@ local ExampleCode = [===[
     TestAnimation:Play() -- Plays your animation
     TestAnimation:Pause() -- Pauses the animation at it's current keyframe / position
     
-    task.delay(.15, function()
+    task.delay(0.15, function()
         TestAnimation:Resume() -- Unpauses the animation and continues from it's current position
     end)
 
@@ -30,6 +30,10 @@ local ExampleCode = [===[
     TestAnimation:Remove() -- Completely destroys the animation and it's contents and stops the animation (you must create a new animation after using this function!)
 
     AnimationObject:Reload() -- Reloads all animations in this animation object, useful for when a player dies, prevents constant removing and adding new tables and instances, meaning you can just play the animation instantly without a problem!
+
+    for Index, Controller in ipairs(AnimationController.GetControllersForOperator(<player>)) do -- gets all the animation objects / controllers made by the player / instance provided in the first arg and returns them in an array!
+        Controller:Reload() -- Reload the animations within the controller / object!
+    end
 
     AnimationObject:Destroy() -- Completely destroys all animations within the object and destroys the object along with it (This renders all functions in the object useless and will cause a error, you must create a new object after using this function!)
 ]===]
@@ -238,7 +242,7 @@ function AnimationController:Exists(Name)
     return false
 end
 
-function AnimationController:Get(Name)
+function AnimationController:GetAnimation(Name)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
