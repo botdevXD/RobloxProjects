@@ -144,32 +144,34 @@ function AnimationFunctions:Play()
     if Controller ~= nil then
         self:DestroySignals()
 
-        if self.AnimationInstance ~= nil then
-            table.insert(self.Signals, self.AnimationInstance.Changed:Connect(function()
-                if not self.AnimationInstance.IsPlaying then
-                    for _, Func in ipairs(self.FinishedQueue) do
-                        if type(Func) == "function" then
-                            pcall(Func)
-                        end
-                    end
-                end
-            end))
+		if self.AnimationInstance ~= nil then
+			if not self.AnimationInstance.IsPlaying then
+	            table.insert(self.Signals, self.AnimationInstance.Changed:Connect(function()
+	                if not self.AnimationInstance.IsPlaying then
+	                    for _, Func in ipairs(self.FinishedQueue) do
+	                        if type(Func) == "function" then
+	                            pcall(Func)
+	                        end
+	                    end
+	                end
+	            end))
 
-            table.foreach(self.Markers, function(Index, Value)
-                Index = tostring(Index)
+	            table.foreach(self.Markers, function(Index, Value)
+	                Index = tostring(Index)
 
-                if type(Value) == "function" and self.Signals[Index] == nil then
-                    self.Signals[Index] = self.AnimationInstance:GetMarkerReachedSignal(Index):Connect(function(...)
-                        for MarkerName, _ in pairs(self.Markers) do
-                            if tostring(MarkerName) == Index then
-                                return Value(...)
-                            end
-                        end
-                    end)
-                end
-            end)
+	                if type(Value) == "function" and self.Signals[Index] == nil then
+	                    self.Signals[Index] = self.AnimationInstance:GetMarkerReachedSignal(Index):Connect(function(...)
+	                        for MarkerName, _ in pairs(self.Markers) do
+	                            if tostring(MarkerName) == Index then
+	                                return Value(...)
+	                            end
+	                        end
+	                    end)
+	                end
+	            end)
 
-            self.AnimationInstance:Play()
+				self.AnimationInstance:Play()
+			end
         end
     else
         return warn("Animation controller doesn't exist")
