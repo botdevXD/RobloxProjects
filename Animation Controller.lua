@@ -179,6 +179,20 @@ function AnimationFunctions:Play()
     return self
 end
 
+function AnimationFunctions:SetSpeed(NewSpeed)
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+    if Controller ~= nil then
+        if self.AnimationInstance ~= nil then
+            NewSpeed = type(NewSpeed) == "number" and NewSpeed or self.AnimationInstance.Speed
+            
+            self.AnimationInstance:AdjustSpeed(NewSpeed)
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+    return self
+end
+
 function AnimationFunctions:Stop()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
