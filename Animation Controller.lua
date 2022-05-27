@@ -25,6 +25,8 @@ local ExampleCode = [===[
 
     TestAnimation:Remove() -- Completely destroys the animation and it's contents and stops the animation (you must create a new animation after using this function!)
 
+    AnimationObject:Reload() -- Reloads all animations in this animation object, useful for when a player dies, prevents constant removing and adding new tables and instances, meaning you can just play the animation instantly without a problem!
+
     AnimationObject:Destroy() -- Completely destroys all animations within the object and destroys the object along with it (This renders all functions in the object useless and will cause a error, you must create a new object after using this function!)
 ]===]
 
