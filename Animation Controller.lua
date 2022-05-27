@@ -35,6 +35,12 @@ local ExampleCode = [===[
         Controller:Reload() -- Reload the animations within the controller / object!
     end
 
+    local BeansController = AnimationController.GetController(<player>, <scope> optional) -- gets and returns the animation object / controller for that instance / player with the scope if it's included!
+
+    if BeansController ~= nil then
+        print("Found the beans controller!", BeansController)
+    end
+
     AnimationObject:Destroy() -- Completely destroys all animations within the object and destroys the object along with it (This renders all functions in the object useless and will cause a error, you must create a new object after using this function!)
 ]===]
 
