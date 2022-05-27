@@ -10,6 +10,10 @@ local ExampleCode = [===[
         Type = "Walking" -- The type for your animation this is optional but lets say you used it... you could stop all animations with the same type using the 'StopAnimationType' (Function) useful for movement systems etc
     });
 
+    TestAnimation:AddMarkerHit("Hit", function() -- The first parameter / arg is meant to be the name of your event within the animation so as soon as your animation hits that keyframe with the event it will fire and this function will listen for that and respond back to your function with it's data!
+        print("omg the hit event within my keyframe was fired!")
+    end)
+
     TestAnimation:Finished(function() -- Adds your function into the animations finished queue, this will be called as soon as the animation finishes (does not get removed!)
         print("Test animation finished playing!")
     end)
