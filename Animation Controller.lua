@@ -292,6 +292,23 @@ function AnimationController:StopAll()
     end
 end
 
+function AnimationController:StopAnimationType(Type)
+    if Type == nil or #tostring(Type) <= 0 then return warn("<Type> cannot be empty nor nil!") end
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+    if Controller ~= nil then
+        for Animation_IDX, Animation in pairs(Controller.Animations) do
+            if type(Animation) == "table" then
+                if Animation.Type == tostring(Type) then
+                    Animation:DestroySignals()
+                    Animation:Stop()
+                end
+            end
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+end
+
 function AnimationController:Reload()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
