@@ -294,15 +294,19 @@ function AnimationController:StopAll()
     end
 end
 
-function AnimationController:StopAnimationType(Type)
+function AnimationController:StopAnimationType(Type, Blacklist)
     if Type == nil or #tostring(Type) <= 0 then return warn("<Type> cannot be empty nor nil!") end
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
+        Blacklist = type(Blacklist) == "table" and Blacklist or {}
+
         for _, Animation in pairs(Controller.Animations) do
             if type(Animation) == "table" then
                 if Animation.Type == tostring(Type) then
-                    Animation:DestroySignals()
-                    Animation:Stop()
+                    if not table.find(Blacklist, Animation) then
+                        Animation:DestroySignals()
+                        Animation:Stop()
+                    end
                 end
             end
         end
