@@ -294,6 +294,7 @@ function AnimationController:Destroy()
     end
 
     table.clear(type(self.Animations) == "table" and self.Animations or {})
+    Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil
     table.clear(self)
 end
 
