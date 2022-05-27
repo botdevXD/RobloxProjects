@@ -1,4 +1,29 @@
--- Made by _Ben#2902 / 0x74_Dev
+--[[
+    -- Made by _Ben#2902 / 0x74_Dev
+    -- EXAMPLE CODE BELOW
+
+    local AnimationController = require(game:GetService("ReplicatedStorage"):WaitForChild("AnimationController", 5));
+    local AnimationObject = AnimationController.new(<player>, <scope> optional but needed if you want to create multiple classes / objects on one instance!); -- Creates a new animation object / class
+    local TestAnimation = AnimationObject:Add({
+        ID = "rbxassetid://0", -- The animation ID
+        Name = "Test1", -- The name of your animation (can be anything but must be a string) this will be used for grabbing animations with the 'GetAnimation' (Function)
+        Type = "Walking" -- The type for your animation this is optional but lets say you used it... you could stop all animations with the same type using the 'StopAnimationType' (Function) useful for movement systems etc
+    });
+
+    TestAnimation:Finished(function() -- Adds your function into the animations finished queue, this will be called as soon as the animation finishes (does not get removed!)
+        print("Test animation finished playing!")
+    end)
+
+    TestAnimation:Play() -- Plays your animation
+    TestAnimation:Pause() -- Pauses the animation at it's current keyframe / position
+    
+    task.delay(.15, function()
+        TestAnimation:Resume() -- Unpauses the animation and continues from it's current position
+    end)
+
+    TestAnimation:Stop() -- Completely stops the animation and cannot be resumed you must replay it using the 'Play' (Function)
+]]
+
 local AnimationFunctions = {}
 local AnimationEndTrackFunctions = {}
 local AnimationController = {
@@ -286,6 +311,7 @@ function AnimationController:Add(AnimationData)
                 _self.FinishedQueue = {}
                 _self.Signals = {}
                 _self.Markers = {}
+                _self.Type = type(AnimationData.Type) == "string" and AnimationData.Type or ""
 
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
