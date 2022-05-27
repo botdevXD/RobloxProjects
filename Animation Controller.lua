@@ -41,6 +41,21 @@ local ExampleCode = [===[
         print("Found the beans controller!", BeansController)
     end
 
+    local BowAnimationExist = AnimationObject:Exists("Shoot") -- Returns false if the animation name provided doesn't exist, if the animation name exists it will return true!
+    
+    if BowAnimationExist == true then
+        local BowShootAnimation = AnimationObject:GetAnimation("Shoot") -- (First arg is the animation name!) Returns nil if the animation is not found else returns the animations object / class!
+
+        if BowShootAnimation ~= nil then
+            print("Found and got the bow shoot animation object!")
+            BowShootAnimation:Play() -- Play the bow shoot animation!
+        end
+
+        print("Yay the shooting animation for the bow exists!")
+    end
+
+    AnimationObject:StopAll() -- Stops all playing animations within the object!
+
     AnimationObject:Destroy() -- Completely destroys all animations within the object and destroys the object along with it (This renders all functions in the object useless and will cause a error, you must create a new object after using this function!)
 ]===]
 
@@ -259,7 +274,7 @@ function AnimationController:GetAnimation(Name)
         return warn("Animation controller doesn't exist")
     end
     
-    return self
+    return nil
 end
 
 function AnimationController:StopAll()
