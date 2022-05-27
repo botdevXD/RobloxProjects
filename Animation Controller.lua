@@ -193,6 +193,18 @@ function AnimationFunctions:SetSpeed(NewSpeed)
     return self
 end
 
+function AnimationFunctions:GetOriginalSpeed()
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+    if Controller ~= nil then
+        if self.AnimationInstance ~= nil then
+            return self.NormalAnimationSpeed or 0
+        end
+    else
+        return 0, warn("Animation controller doesn't exist")
+    end
+    return 0
+end
+
 function AnimationFunctions:Stop()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
@@ -287,7 +299,7 @@ function AnimationController:GetAnimation(Name)
             return rawget(Controller.Animations, Name)
         end
     else
-        return warn("Animation controller doesn't exist")
+        return nil, warn("Animation controller doesn't exist")
     end
     
     return nil
@@ -391,6 +403,8 @@ function AnimationController:Add(AnimationData)
                     ANI_OBJ.AnimationId = AnimationData.ID
 
                     local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
+
+                    _self.NormalAnimationSpeed = Loaded.Speed
 
                     rawset(_self, "AnimationInstance", Loaded)
                     
