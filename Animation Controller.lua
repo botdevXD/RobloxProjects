@@ -54,6 +54,7 @@ local ExampleCode = [===[
         print("Yay the shooting animation for the bow exists!")
     end
 
+    AnimationObject:StopAnimationType("Walking") -- Stops all animations with the 'Walking' Type, Type cannot be empty or nil else will return a warning... Animation type can be set when using the 'Add' (Function) see example above
     AnimationObject:StopAll() -- Stops all playing animations within the object!
 
     AnimationObject:Destroy() -- Completely destroys all animations within the object and destroys the object along with it (This renders all functions in the object useless and will cause a error, you must create a new object after using this function!)
