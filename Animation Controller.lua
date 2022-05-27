@@ -296,7 +296,7 @@ function AnimationController:StopAnimationType(Type)
     if Type == nil or #tostring(Type) <= 0 then return warn("<Type> cannot be empty nor nil!") end
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
-        for Animation_IDX, Animation in pairs(Controller.Animations) do
+        for _, Animation in pairs(Controller.Animations) do
             if type(Animation) == "table" then
                 if Animation.Type == tostring(Type) then
                     Animation:DestroySignals()
