@@ -1,5 +1,5 @@
 local ExampleCode = [===[
-    -- Made by _Ben#2902 / 0x74_Dev
+    -- Made by _Ben#2902 / 0x74_Dev / benthreadgold
     -- EXAMPLE CODE BELOW
 
     local AnimationController = require(game:GetService("ReplicatedStorage"):WaitForChild("AnimationController", 5));
