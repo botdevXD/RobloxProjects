@@ -1,4 +1,4 @@
---!strict
+---!strict
 
 local ExampleCode = [===[
     -- Made by _Ben#2020 / 0x74_Dev / benthreadgold
@@ -287,7 +287,11 @@ function AnimationController:Exists(Name : string, Options : any)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        return self:GetAnimation(Name, Options) == nil and false or true
+        local Animation = self:GetAnimation(Name, Options)
+        
+        if Animation then
+            return true
+        end
     else
         return false, warn("Animation controller doesn't exist")
     end
@@ -303,8 +307,14 @@ function AnimationController:GetAnimation(Name : string, Options : any)
 
     if Controller ~= nil then
         for _, Animation in ipairs(self.Animations) do
-            if Animation.Name == Name and Animation.Type == Options.Type then
-                return Animation
+            if Animation.Name == Name then
+                if Options.Type ~= "" then
+                    if Options.Type == Animation.Type then
+                        return Animation
+                    end
+                else
+                    return Animation
+                end
             end
         end
     else
@@ -426,6 +436,7 @@ function AnimationController:Add(AnimationData : table)
                 return _self
             end
         else
+            print("Bad boy")
             return self:GetAnimation(self.Animations, AnimationData)
         end
     else
