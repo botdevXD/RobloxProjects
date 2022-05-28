@@ -1,5 +1,7 @@
+--!strict
+
 local ExampleCode = [===[
-    -- Made by _Ben#2902 / 0x74_Dev / benthreadgold
+    -- Made by _Ben#2902 / 0x74_Dev
     -- EXAMPLE CODE BELOW
 
     local AnimationController = require(game:GetService("ReplicatedStorage"):WaitForChild("AnimationController", 5));
@@ -71,7 +73,7 @@ AnimationEndTrackFunctions.__index = AnimationEndTrackFunctions
 
 local Controllers = getmetatable(newproxy(true))
 
-function AnimationController.new(Operator, scope)
+function AnimationController.new(Operator : Instance, scope : any)
     scope = type(scope) == "string" and scope or ""
     if Controllers[tostring(Operator) .. "+" .. scope] ~= nil then return Controllers[tostring(Operator) .. "+" .. scope] end
 
@@ -85,7 +87,7 @@ function AnimationController.new(Operator, scope)
     return self
 end
 
-function AnimationController.GetControllersForOperator(Operator)
+function AnimationController.GetControllersForOperator(Operator : Instance)
     local ControllerResults = {}
 
     for ControllerName, ControllerData in pairs(Controllers) do
@@ -103,7 +105,7 @@ function AnimationController.GetControllersForOperator(Operator)
     return ControllerResults
 end
 
-function AnimationController.GetController(Operator, scope)
+function AnimationController.GetController(Operator  : Instance, scope : any)
     scope = type(scope) == "string" and scope or ""
 
     return Operator ~= nil and Controllers[tostring(Operator) .. "+" .. scope] or nil
@@ -111,7 +113,7 @@ end
 
 -----------------------------------------
 -- Animation functions (None Controller)
-function AnimationFunctions:AddMarkerHit(MarkerName, Func)
+function AnimationFunctions:AddMarkerHit(MarkerName : string, Func : any)
     -- Start here
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
@@ -124,7 +126,7 @@ function AnimationFunctions:AddMarkerHit(MarkerName, Func)
     return self
 end
 
-function AnimationFunctions:Finished(Func)
+function AnimationFunctions:Finished(Func : any)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
@@ -179,7 +181,7 @@ function AnimationFunctions:Play()
     return self
 end
 
-function AnimationFunctions:SetSpeed(NewSpeed)
+function AnimationFunctions:SetSpeed(NewSpeed : number)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
         if self.AnimationInstance ~= nil then
@@ -277,7 +279,7 @@ function AnimationFunctions:DestroySignals()
 end
 -------------------------------------------
 -- Animation functions (Controller)
-function AnimationController:Exists(Name)
+function AnimationController:Exists(Name : string)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
@@ -291,7 +293,9 @@ function AnimationController:Exists(Name)
     return false
 end
 
-function AnimationController:GetAnimation(Name)
+function AnimationController:GetAnimation(Name : string, Options : any)
+    Options = type(Options) == "table" and Options or {}
+
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
@@ -320,7 +324,7 @@ function AnimationController:StopAll()
     end
 end
 
-function AnimationController:StopAnimationType(Type, Blacklist)
+function AnimationController:StopAnimationType(Type : string, Blacklist : any)
     if Type == nil or #tostring(Type) <= 0 then return warn("<Type> cannot be empty nor nil!") end
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
@@ -378,7 +382,7 @@ function AnimationController:Destroy()
     table.clear(self)
 end
 
-function AnimationController:Add(AnimationData)
+function AnimationController:Add(AnimationData : table)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
         AnimationData = type(AnimationData) == "table" and AnimationData or {}
