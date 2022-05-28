@@ -1,4 +1,4 @@
---!strict
+---!strict
 
 local ExampleCode = [===[
     -- Made by _Ben#2020 / 0x74_Dev / benthreadgold
@@ -256,7 +256,11 @@ function AnimationFunctions:Remove()
             self:DestroySignals()
             self:Stop()
 
-            rawset(Controller.Animations, self.AnimationName, nil)
+            table.clear(self.FinishedQueue)
+            table.clear(self.Signals)
+            table.clear(self.Markers)
+
+            --rawset(Controller.Animations, self.AnimationName, nil) -- Update here
             table.clear(self)
         end
     else
@@ -279,11 +283,13 @@ function AnimationFunctions:DestroySignals()
 end
 -------------------------------------------
 -- Animation functions (Controller)
-function AnimationController:Exists(Name : string)
+function AnimationController:Exists(Name : string, Options : any)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        if rawget(Controller.Animations, Name) ~= nil then
+        local Animation = self:GetAnimation(Name, Options)
+        
+        if Animation ~= nil then
             return true
         end
     else
@@ -295,12 +301,21 @@ end
 
 function AnimationController:GetAnimation(Name : string, Options : any)
     Options = type(Options) == "table" and Options or {}
+    Options.Type = type(Options.Type) == "string" and Options.Type or ""
 
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        if self:Exists(Name) then
-            return rawget(Controller.Animations, Name)
+        for _, Animation in ipairs(self.Animations) do
+            if Animation.AnimationName == Name then
+                if Options.Type ~= "" then
+                    if Options.Type == Animation.Type then
+                        return Animation
+                    end
+                else
+                    return Animation
+                end
+            end
         end
     else
         return nil, warn("Animation controller doesn't exist")
@@ -313,12 +328,12 @@ function AnimationController:StopAll()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        for Animation_IDX, Animation in pairs(Controller.Animations) do
+        table.foreach(self.Animations, function(_, Animation)
             if Animation.AnimationInstance ~= nil then
                 Animation:DestroySignals()
                 Animation:Stop()
             end
-        end
+        end)
     else
         return warn("Animation controller doesn't exist")
     end
@@ -330,7 +345,7 @@ function AnimationController:StopAnimationType(Type : string, Blacklist : any)
     if Controller ~= nil then
         Blacklist = type(Blacklist) == "table" and Blacklist or {}
 
-        for _, Animation in pairs(Controller.Animations) do
+        table.foreach(self.Animations, function(_, Animation)
             if type(Animation) == "table" then
                 if Animation.Type == tostring(Type) then
                     if not table.find(Blacklist, Animation) then
@@ -339,7 +354,7 @@ function AnimationController:StopAnimationType(Type : string, Blacklist : any)
                     end
                 end
             end
-        end
+        end)
     else
         return warn("Animation controller doesn't exist")
     end
@@ -352,19 +367,19 @@ function AnimationController:Reload()
         local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
         
         if Humanoid ~= nil then
-            for Animation_IDX, Animation in pairs(Controller.Animations) do
+            table.foreach(self.Animations, function(Animation_IDX, Animation)
                 if type(Animation) == "table" then
                     Animation:Stop()
                     Animation:DestroySignals()
                     
                     local ANI_OBJ = Instance.new("Animation", nil)
-                    ANI_OBJ.AnimationId = rawget(Controller.Animations[Animation_IDX], "AnimationId")
+                    ANI_OBJ.AnimationId = Animation.AnimationId
                     
-                    rawset(Controller.Animations[Animation_IDX], "AnimationInstance", Humanoid:LoadAnimation(ANI_OBJ))
+                    rawset(Animation, "AnimationInstance", Humanoid:LoadAnimation(ANI_OBJ))
                     
                     ANI_OBJ:Destroy()
                 end
-            end
+            end)
         end
     else
         return warn("Animation controller doesn't exist")
@@ -372,10 +387,10 @@ function AnimationController:Reload()
 end
 
 function AnimationController:Destroy()
-    for _, Animation in pairs(type(self.Animations) == "table" and self.Animations or {}) do
+    table.foreach(type(self.Animations) == "table" and self.Animations or {}, function(_, Animation)
         Animation:DestroySignals()
         Animation:Remove()
-    end
+    end)
 
     table.clear(type(self.Animations) == "table" and self.Animations or {})
     Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil
@@ -386,8 +401,9 @@ function AnimationController:Add(AnimationData : table)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
         AnimationData = type(AnimationData) == "table" and AnimationData or {}
+        AnimationData.Type = type(AnimationData.Type) == "string" and AnimationData.Type or ""
 
-        if not self:Exists(AnimationData.Name or "") then
+        if not self:Exists(AnimationData.Name or "", AnimationData) then
             if self.Operator ~= nil and AnimationData.Name ~= nil then
                 local Character = self.Operator.Character
                 local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
@@ -400,7 +416,7 @@ function AnimationController:Add(AnimationData : table)
                 _self.FinishedQueue = {}
                 _self.Signals = {}
                 _self.Markers = {}
-                _self.Type = type(AnimationData.Type) == "string" and AnimationData.Type or ""
+                _self.Type = AnimationData.Type
 
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
@@ -410,17 +426,18 @@ function AnimationController:Add(AnimationData : table)
 
                     _self.NormalAnimationSpeed = Loaded.Speed
 
-                    rawset(_self, "AnimationInstance", Loaded)
+                    _self.AnimationInstance = Loaded
                     
                     ANI_OBJ:Destroy()
                 end
 
-                rawset(Controller.Animations, AnimationData.Name, _self)
+                table.insert(self.Animations, _self)
 
                 return _self
             end
         else
-            return rawget(Controller.Animations, AnimationData.Name)
+            print("Bad boy")
+            return self:GetAnimation(self.Animations, AnimationData)
         end
     else
         return warn("Animation controller doesn't exist")
