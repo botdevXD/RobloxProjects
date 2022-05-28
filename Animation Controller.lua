@@ -436,7 +436,6 @@ function AnimationController:Add(AnimationData : table)
                 return _self
             end
         else
-            print("Bad boy")
             return self:GetAnimation(self.Animations, AnimationData)
         end
     else
