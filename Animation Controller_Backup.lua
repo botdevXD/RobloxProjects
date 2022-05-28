@@ -289,7 +289,7 @@ function AnimationController:Exists(Name : string, Options : any)
     if Controller ~= nil then
         local Animation = self:GetAnimation(Name, Options)
         
-        if Animation then
+        if Animation ~= nil then
             return true
         end
     else
@@ -307,7 +307,7 @@ function AnimationController:GetAnimation(Name : string, Options : any)
 
     if Controller ~= nil then
         for _, Animation in ipairs(self.Animations) do
-            if Animation.Name == Name then
+            if Animation.AnimationName == Name then
                 if Options.Type ~= "" then
                     if Options.Type == Animation.Type then
                         return Animation
