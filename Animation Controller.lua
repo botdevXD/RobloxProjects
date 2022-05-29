@@ -73,6 +73,13 @@ AnimationEndTrackFunctions.__index = AnimationEndTrackFunctions
 
 local Controllers = getmetatable(newproxy(true))
 
+local function GetCharacter(Player : Instance)
+	local _S, _F  = pcall(function()
+		Player = Player.Character
+	end)
+	return Player
+end
+
 function AnimationController.new(Operator : Instance, scope : any)
     scope = type(scope) == "string" and scope or ""
     if Controllers[tostring(Operator) .. "+" .. scope] ~= nil then return Controllers[tostring(Operator) .. "+" .. scope] end
@@ -380,7 +387,7 @@ end
 function AnimationController:Reload()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
     if Controller ~= nil then
-        local Character = self.Operator.Character
+        local Character = GetCharacter(self.Operator)
         local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
         
         if Humanoid ~= nil then
@@ -422,7 +429,7 @@ function AnimationController:Add(AnimationData : table)
 
         if not self:Exists(AnimationData.Name or "", AnimationData) then
             if self.Operator ~= nil and AnimationData.Name ~= nil then
-                local Character = self.Operator.Character
+                local Character = GetCharacter(self.Operator)
                 local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
                 local _self = setmetatable({}, AnimationFunctions)
                 
