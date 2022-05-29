@@ -260,7 +260,12 @@ function AnimationFunctions:Remove()
             table.clear(self.Signals)
             table.clear(self.Markers)
 
-            --rawset(Controller.Animations, self.AnimationName, nil) -- Update here
+            for AnimationIndex, AnimationData_ in ipairs(Controller.Animations) do
+                if AnimationData_.Type == self.Type and AnimationData_.AnimationName == self.AnimationName then
+                    table.remove(Controller.Animations, AnimationIndex)
+                end
+            end
+
             table.clear(self)
         end
     else
