@@ -172,7 +172,7 @@ function AnimationFunctions:Play()
 	            table.foreach(self.Markers, function(Index, Value)
 	                Index = tostring(Index)
 
-	                if type(Value) == "function" and self.Signals[Index] == nil then
+	                if type(Value) == "table" and self.Signals[Index] == nil then
 	                    self.Signals[Index] = self.AnimationInstance:GetMarkerReachedSignal(Index):Connect(function(...)
 	                        for MarkerName, _ in pairs(self.Markers) do
 	                            if tostring(MarkerName) == Index then
