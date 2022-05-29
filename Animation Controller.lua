@@ -123,12 +123,12 @@ end
 
 -----------------------------------------
 -- Animation functions (None Controller)
-function AnimationFunctions:AddMarkerHit(MarkerName : string, Func : any)
+function AnimationFunctions:AddMarkerHit(MarkerName : string, Func : any, ...)
     -- Start here
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        self.Markers[MarkerName] = Func
+        self.Markers[MarkerName] = {Function = Func, Args = {...}}
     else
         return warn("Animation controller doesn't exist")
     end
@@ -176,7 +176,7 @@ function AnimationFunctions:Play()
 	                    self.Signals[Index] = self.AnimationInstance:GetMarkerReachedSignal(Index):Connect(function(...)
 	                        for MarkerName, _ in pairs(self.Markers) do
 	                            if tostring(MarkerName) == Index then
-	                                return Value(...)
+	                                return Value.Function(unpack(Value.Args), ...)
 	                            end
 	                        end
 	                    end)
