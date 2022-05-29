@@ -176,7 +176,7 @@ function AnimationFunctions:Play()
 	                end
 	            end))
 
-	            table.foreach(self.Markers, function(Index, Value)
+	            for Index, Value in pairs(self.Markers) do
 	                Index = tostring(Index)
 
 	                if type(Value) == "table" and self.Signals[Index] == nil then
@@ -188,7 +188,7 @@ function AnimationFunctions:Play()
 	                        end
 	                    end)
 	                end
-	            end)
+	            end
 
 				self.AnimationInstance:Play()
 			end
@@ -352,12 +352,12 @@ function AnimationController:StopAll()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
-        table.foreach(self.Animations, function(_, Animation)
+        for _, Animation in ipairs(self.Animations) do
             if Animation.AnimationInstance ~= nil then
                 Animation:DestroySignals()
                 Animation:Stop()
             end
-        end)
+        end
     else
         return warn("Animation controller doesn't exist")
     end
@@ -369,7 +369,7 @@ function AnimationController:StopAnimationType(Type : string, Blacklist : any)
     if Controller ~= nil then
         Blacklist = type(Blacklist) == "table" and Blacklist or {}
 
-        table.foreach(self.Animations, function(_, Animation)
+        for _, Animation in ipairs(self.Animations) do
             if type(Animation) == "table" then
                 if Animation.Type == tostring(Type) then
                     if not table.find(Blacklist, Animation) then
@@ -378,7 +378,7 @@ function AnimationController:StopAnimationType(Type : string, Blacklist : any)
                     end
                 end
             end
-        end)
+        end
     else
         return warn("Animation controller doesn't exist")
     end
@@ -391,7 +391,7 @@ function AnimationController:Reload()
         local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
         
         if Humanoid ~= nil then
-            table.foreach(self.Animations, function(Animation_IDX, Animation)
+            for _, Animation in ipairs(self.Animations) do
                 if type(Animation) == "table" then
                     Animation:Stop()
                     Animation:DestroySignals()
@@ -403,7 +403,7 @@ function AnimationController:Reload()
                     
                     ANI_OBJ:Destroy()
                 end
-            end)
+            end
         end
     else
         return warn("Animation controller doesn't exist")
@@ -411,10 +411,10 @@ function AnimationController:Reload()
 end
 
 function AnimationController:Destroy()
-    table.foreach(type(self.Animations) == "table" and self.Animations or {}, function(_, Animation)
+    for _, Animation in ipairs(type(self.Animations) == "table" and self.Animations or {}) do
         Animation:DestroySignals()
         Animation:Remove()
-    end)
+    end
 
     table.clear(type(self.Animations) == "table" and self.Animations or {})
     Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil
