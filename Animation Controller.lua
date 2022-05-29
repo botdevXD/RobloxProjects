@@ -136,12 +136,12 @@ function AnimationFunctions:AddMarkerHit(MarkerName : string, Func : any)
     return self
 end
 
-function AnimationFunctions:Finished(Func : any)
+function AnimationFunctions:Finished(Func : any, ...)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
     if Controller ~= nil then
         if self.FinishedQueue ~= nil then
-            self.FinishedQueue[#self.FinishedQueue + 1] = Func
+            self.FinishedQueue[#self.FinishedQueue + 1] = {Function = Func, Args = {...}}
         end
     else
         return warn("Animation controller doesn't exist")
@@ -159,9 +159,11 @@ function AnimationFunctions:Play()
                 self:DestroySignals()
 	            table.insert(self.Signals, self.AnimationInstance.Changed:Connect(function()
 	                if not self.AnimationInstance.IsPlaying then
-	                    for _, Func in ipairs(self.FinishedQueue) do
-	                        if type(Func) == "function" then
-	                            pcall(Func)
+	                    for _, FuncData in ipairs(self.FinishedQueue) do
+	                        if type(FuncData) == "table" then
+                                if type(FuncData.Function) == "function" then
+	                                pcall(FuncData.Function, unpack(FuncData.Args))
+                                end
 	                        end
 	                    end
 	                end
