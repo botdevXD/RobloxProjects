@@ -105,6 +105,16 @@ function AnimationController.GetControllersForOperator(Operator : Instance)
     return ControllerResults
 end
 
+function AnimationController.ReloadAllControllers(Operator : Instance)
+    local Results = AnimationController.GetControllersForOperator(Operator)
+
+    if #Results > 0 then
+        for _, AnimationObject in ipairs(Results) do
+            AnimationObject:Reload()
+        end
+    end
+end
+
 function AnimationController.GetController(Operator  : Instance, scope : any)
     scope = type(scope) == "string" and scope or ""
 
