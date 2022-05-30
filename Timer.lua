@@ -1,4 +1,4 @@
--- Made by _Ben#2020 / 0x74_Dev
+-- Made by _Ben#2020 / 0x74_Dev / benthreadgold
 
 local Timer = {}
 Timer.__index = Timer
