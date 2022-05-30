@@ -143,6 +143,20 @@ function AnimationFunctions:AddMarkerHit(MarkerName : string, Func : any, ...)
     return self
 end
 
+function AnimationFunctions:Stopped(Func : any, ...)
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+    if Controller ~= nil then
+        if self.StoppedFunctions ~= nil then
+            self.StoppedFunctions[#self.StoppedFunctions + 1] = {Function = Func, Args = {...}}
+        end
+    else
+        return warn("Animation controller doesn't exist")
+    end
+
+    return self
+end
+
 function AnimationFunctions:Finished(Func : any, ...)
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
@@ -164,6 +178,7 @@ function AnimationFunctions:Play()
 		if self.AnimationInstance ~= nil then
 			if not self.AnimationInstance.IsPlaying then
                 self:DestroySignals()
+
 	            table.insert(self.Signals, self.AnimationInstance.Changed:Connect(function()
 	                if not self.AnimationInstance.IsPlaying then
 	                    for _, FuncData in ipairs(self.FinishedQueue) do
@@ -233,6 +248,14 @@ function AnimationFunctions:Stop()
 
         if self.AnimationInstance ~= nil then
             self.AnimationInstance:Stop()
+
+            for _, FuncData in ipairs(self.StoppedFunctions) do
+                if type(FuncData) == "table" then
+                    if type(FuncData.Function) == "function" then
+                        FuncData.Function(unpack(FuncData.Args))
+                    end
+                end
+            end
         end
     else
         return warn("Animation controller doesn't exist")
@@ -276,6 +299,7 @@ function AnimationFunctions:Remove()
             self:Stop()
 
             table.clear(self.FinishedQueue)
+            table.clear(self.StoppedFunctions)
             table.clear(self.Signals)
             table.clear(self.Markers)
 
@@ -438,10 +462,11 @@ function AnimationController:Add(AnimationData : table)
                 _self.AnimationName = AnimationData.Name
                 _self.AnimationId = AnimationData.ID
                 _self.FinishedQueue = {}
+                _self.StoppedFunctions = {}
                 _self.Signals = {}
                 _self.Markers = {}
                 _self.Type = AnimationData.Type
-
+                
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
                     ANI_OBJ.AnimationId = AnimationData.ID
