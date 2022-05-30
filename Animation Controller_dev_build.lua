@@ -97,6 +97,7 @@ function AnimationController.new(Operator : Instance, Options : any)
     Options.scope = type(Options.scope) == "string" and Options.scope or ""
 
     local CurrentController = AnimationController.GetControllerWithScope(Operator, Options.scope)
+    
     if CurrentController ~= nil then return CurrentController end
 
     local self = setmetatable({}, AnimationController)
@@ -453,7 +454,7 @@ function AnimationController:Destroy()
     end
 
     table.clear(type(self.Animations) == "table" and self.Animations or {})
-    Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil
+    --Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil -- Fix code here
     table.clear(self)
 end
 
