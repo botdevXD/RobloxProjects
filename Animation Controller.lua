@@ -80,16 +80,32 @@ local function GetCharacter(Player : Instance)
 	return Player
 end
 
-function AnimationController.new(Operator : Instance, scope : any)
-    scope = type(scope) == "string" and scope or ""
-    if Controllers[tostring(Operator) .. "+" .. scope] ~= nil then return Controllers[tostring(Operator) .. "+" .. scope] end
+function AnimationController.GetControllerWithScope(Operator : Instance, scope : string)
+    for _, ControllerData in pairs(Controllers) do
+        local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
+
+        if ControllerOperator == Operator then
+            return ControllerData
+        end
+    end
+
+    return nil
+end
+
+function AnimationController.new(Operator : Instance, Options : any)
+    Options = type(Options) == "table" and Options or {}
+    Options.scope = type(Options.scope) == "string" and Options.scope or ""
+
+    local CurrentController = AnimationController.GetControllerWithScope(Operator, Options.scope)
+    
+    if CurrentController ~= nil then return CurrentController end
 
     local self = setmetatable({}, AnimationController)
     self.Operator = Operator
     self.Animations = {}
-    self.scope = scope
+    self.scope = Options.scope
 
-    Controllers[tostring(Operator) .. "+" .. scope] = self
+    Controllers[Operator] = self
 
     return self
 end
@@ -97,15 +113,9 @@ end
 function AnimationController.GetControllersForOperator(Operator : Instance)
     local ControllerResults = {}
 
-    for ControllerName, ControllerData in pairs(Controllers) do
-        if type(ControllerName) == "string" then
-            local _ControllerName = ControllerName:split("+")
-
-            if #_ControllerName >= 1 then
-                if tostring(_ControllerName[1]) == tostring(Operator) then
-                    table.insert(ControllerResults, ControllerData)
-                end
-            end
+    for ControllerOperator, ControllerData in pairs(Controllers) do
+        if ControllerOperator == Operator then
+            table.insert(ControllerResults, ControllerData)
         end
     end
 
@@ -125,7 +135,7 @@ end
 function AnimationController.GetController(Operator  : Instance, scope : any)
     scope = type(scope) == "string" and scope or ""
 
-    return Operator ~= nil and Controllers[tostring(Operator) .. "+" .. scope] or nil
+    return Operator ~= nil and AnimationController.GetControllerWithScope(Operator, scope) or nil
 end
 
 -----------------------------------------
@@ -423,7 +433,10 @@ function AnimationController:Reload()
                     local ANI_OBJ = Instance.new("Animation", nil)
                     ANI_OBJ.AnimationId = Animation.AnimationId
                     
-                    rawset(Animation, "AnimationInstance", Humanoid:LoadAnimation(ANI_OBJ))
+                    local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
+
+                    rawset(Animation, "NormalAnimationSpeed", Loaded.Speed)
+                    rawset(Animation, "AnimationInstance", Loaded)
                     
                     ANI_OBJ:Destroy()
                 end
@@ -441,7 +454,7 @@ function AnimationController:Destroy()
     end
 
     table.clear(type(self.Animations) == "table" and self.Animations or {})
-    Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil
+    --Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil -- Fix code here
     table.clear(self)
 end
 
@@ -466,7 +479,7 @@ function AnimationController:Add(AnimationData : table)
                 _self.Signals = {}
                 _self.Markers = {}
                 _self.Type = AnimationData.Type
-                
+
                 if Humanoid ~= nil then
                     local ANI_OBJ = Instance.new("Animation", nil)
                     ANI_OBJ.AnimationId = AnimationData.ID
