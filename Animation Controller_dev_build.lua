@@ -2,7 +2,7 @@
 
 local ExampleCode = [===[
     -- Made by _Ben#2020 / 0x74_Dev / benthreadgold
-    -- EXAMPLE CODE BELOW
+    -- EXAMPLE CODE BELOW / OUT DATED DOC (NEW DOCUMENTATION COMING SOON)
 
     local AnimationController = require(game:GetService("ReplicatedStorage"):WaitForChild("AnimationController", 5));
     local AnimationObject = AnimationController.new(<player>, <scope> optional but needed if you want to create multiple classes / objects on one instance!); -- Creates a new animation object / class
