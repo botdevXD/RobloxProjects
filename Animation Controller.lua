@@ -81,7 +81,7 @@ local function GetCharacter(Player : Instance)
 end
 
 function AnimationController.GetControllerWithScope(Operator : Instance, scope : string)
-    for _, ControllerData in pairs(Controllers) do
+    for _, ControllerData in ipairs(Controllers) do
         local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
 
         if ControllerOperator == Operator then
@@ -105,15 +105,16 @@ function AnimationController.new(Operator : Instance, Options : any)
     self.Animations = {}
     self.scope = Options.scope
 
-    Controllers[Operator] = self
-
+    table.insert(Controllers, self)
     return self
 end
 
 function AnimationController.GetControllersForOperator(Operator : Instance)
     local ControllerResults = {}
 
-    for ControllerOperator, ControllerData in pairs(Controllers) do
+    for _, ControllerData in ipairs(Controllers) do
+        local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
+
         if ControllerOperator == Operator then
             table.insert(ControllerResults, ControllerData)
         end
@@ -454,7 +455,16 @@ function AnimationController:Destroy()
     end
 
     table.clear(type(self.Animations) == "table" and self.Animations or {})
-    --Controllers[tostring(self.Operator) .. "+" .. self.scope] = nil -- Fix code here
+
+    for ControllerIndex, ControllerData in ipairs(Controllers) do
+        local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
+
+        if ControllerOperator == self.Operator then
+            table.remove(Controllers, ControllerIndex)
+            break
+        end
+    end
+    
     table.clear(self)
 end
 
