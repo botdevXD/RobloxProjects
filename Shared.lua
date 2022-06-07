@@ -21,7 +21,7 @@ local function CopyTable(Table)
 end
 
 function Shared.new()
-    if Shared.GetMeta() then -- if we already have a shared object then return it
+    if Shared.__Meta ~= nil then -- if we already have a shared object then return it
         return Shared.__Meta -- return the shared object
     end
 
@@ -85,10 +85,10 @@ function Shared:Init()
                 end,
                 __newindex = function(_, key, value) -- create our own new index metatable to allow us to set the module's functions and properties and to prevent them from being changed
                     if key == "GetModule" then -- if the key is GetModule then error because it's a reserved key
-                        return warn("Attempt to modify high class function!") -- warn the user that they're trying to modify a reserved key
+                        return error("Attempted to modify high class function!") -- warn the user that they're trying to modify a reserved key
                     end
 
-                    ModuleCopy[key] = value -- sets the key in the copy to the value
+                    return error("Attempted to modify locked table!") -- warn the user that they're trying to modify a locked table
                 end
             })
 
