@@ -27,17 +27,17 @@ function Shared.new()
 end
 
 function Shared:Add(object : Instance, Recursive : any)
-    Recursive = type(Recursive) == "boolean" and Recursive or false
+    Recursive = type(Recursive) == "boolean" and Recursive or false -- default to false if not a boolean else use the Recursive value
 
-    if typeof(object) == "Instance" then
+    if typeof(object) == "Instance" then -- if it's an instance add it to the queue and check if it's a module and check if recursive is true
         
-        if object:IsA("ModuleScript") then
-            table.insert(self.Queue, object)
+        if object:IsA("ModuleScript") then -- if it's a module then add it to the queue
+            table.insert(self.Queue, object) -- add it to the queue
         end
 
-        if Recursive then
-            for _,v in ipairs(object:GetChildren()) do
-                self:Add(v, Recursive)
+        if Recursive then -- if recursive is true then add all of the module's children to the queue
+            for _,v in ipairs(object:GetChildren()) do -- for each child of the object
+                self:Add(v, Recursive) -- add the child to the queue while going through the childs children
             end
         end
     end
@@ -52,7 +52,7 @@ function Shared:Init()
         end
     end
 
-    table.clear(self.Queue) -- clear the queue
+    table.clear(self.Queue) -- clear the queue and all it's contents
 end
 
 function Shared.GetMeta()
