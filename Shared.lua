@@ -21,6 +21,10 @@ local function CopyTable(Table)
 end
 
 function Shared.new()
+    if Shared.GetMeta() then
+        return Shared.__Meta
+    end
+
     local self = setmetatable({}, Shared)
     self.Queue = {}
     self.LoadedModules = setmetatable({}, {
@@ -31,6 +35,8 @@ function Shared.new()
             return error("Attempt to modify read-only table")
         end
     })
+
+    Shared.__Meta = self
     return self
 end
 
@@ -53,7 +59,7 @@ end
 
 function Shared:SortQueue()
     table.sort(self.Queue, function(a, b)
-        return a.Priority < b.Priority
+        return a.Priority < b.Priority -- sort the queue by priority in ascending order (lowest priority first)
     end)
 end
 
@@ -68,7 +74,7 @@ function Shared:Init()
             Module.ModuleName = object.Name -- set the module name to the name of the module
 
             setmetatable(Module, {
-                __index = function(_, key)
+                __index = function(_, key) -- create our own index metatable to allow us to access the module's functions and properties
                     if key == "GetModule" then -- if the key is GetModule then return the function to get the module
                         return function (module_name) -- return the function to get the module
                             return self.LoadedModules[module_name] or nil -- return the loaded module or nil if it doesn't exist
@@ -77,7 +83,7 @@ function Shared:Init()
 
                     return ModuleCopy[key] -- return the value of the key in the module copy
                 end,
-                __newindex = function(_, key, value)
+                __newindex = function(_, key, value) -- create our own new index metatable to allow us to set the module's functions and properties and to prevent them from being changed
                     if key == "GetModule" then -- if the key is GetModule then error because it's a reserved key
                         return warn("Attempt to modify high class function!") -- warn the user that they're trying to modify a reserved key
                     end
