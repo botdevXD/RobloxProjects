@@ -25,19 +25,19 @@ function Shared.new()
         return Shared.__Meta -- return the shared object
     end
 
-    local self = setmetatable({}, Shared)
-    self.Queue = {}
+    local self = setmetatable({}, Shared) -- create a new shared object and set the metatable
+    self.Queue = {} -- empty table to hold the queued modules
     self.LoadedModules = setmetatable({}, {
-        __index = function(_, ModuleName)
-            return Modules[ModuleName] or nil
+        __index = function(_, ModuleName) -- create custom __index metamethod to return the module if it's already loaded or nil if it's not
+            return Modules[ModuleName] or nil -- if the module is already loaded then return it, otherwise return nil
         end,
-        __newindex = function()
-            return error("Attempt to modify read-only table")
+        __newindex = function() -- create custom __newindex metamethod to prevent new modules from being added and to prevent modules from being overwritten
+            return error("Attempt to modify read-only table") -- throw an error if someone tries to add a module / overwrite a module
         end
-    })
+    }) -- create new object to hold loaded modules and set metatable
 
-    Shared.__Meta = self
-    return self
+    Shared.__Meta = self -- set the shared object as the metatable for the shared object
+    return self -- return the shared object
 end
 
 function Shared:Add(object : Instance, Recursive : any)
