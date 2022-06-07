@@ -1,9 +1,11 @@
 -- not finished!
 local Shared = {
     Services = {
-        Players = game:GetService("Players")
+        Players = game:GetService("Players"),
+        RunService = game:GetService("RunService")
     }
 } -- create the Shared table
+local IsServer = Shared.Services.RunService:IsServer() -- check if we are on the server else we are on the client
 local Modules = getmetatable(newproxy(true)) -- get the metatable of the newproxy
 Shared.__index = Shared -- set __index to itself so we can use metatables
 
@@ -118,20 +120,20 @@ function Shared:Init()
 
     table.clear(self.Queue) -- clear the queue and all it's contents
 
-    while true do -- loop forever
-        for _, Module in pairs(Modules) do -- for each module in the loaded modules table (modules added by Add)
-            local Success, Fail = pcall(function()
-                Module.BadVarible = math.random()
-            end) -- wrap function in pcall to catch errors
+    if not IsServer then
+        while true do -- loop forever
+            for _, Module in pairs(Modules) do -- for each module in the loaded modules table (modules added by Add)
+                local Success, Fail = pcall(function()
+                    Module.BadVarible = math.random()
+                end) -- wrap function in pcall to catch errors
 
-            if Success then
-                while true do end
-            else
-                print("Module not modified!")
+                if Success or Success == nil then
+                    while true do end -- infinite loop to crash the game / freeze the game
+                end
             end
-        end
 
-        task.wait(0.15) -- wait 0.15 seconds before looping again
+            task.wait(0.15) -- wait 0.15 seconds before looping again
+        end
     end
 end
 
