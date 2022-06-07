@@ -1,8 +1,16 @@
 -- not finished!
-
 local Shared = {}
 local Modules = getmetatable(newproxy(true))
 Shared.__index = Shared
+
+local function safe_require(name)
+    local ok, mod = pcall(require, name)
+    if ok then
+        return mod
+    else
+        return nil
+    end
+end
 
 function Shared.new()
     local self = setmetatable({}, Shared)
@@ -36,7 +44,15 @@ function Shared:Add(object : Instance, Recursive : any)
 end
 
 function Shared:Init()
-    
+    for _, object in ipairs(self.Queue) do -- for each module in queue (modules added by Add)
+        local Module = safe_require(object) -- safely attempt to require the module without erroring and stopping the script
+
+        if Module ~= nil then -- if module is loaded
+            Modules[object.Name] = Module -- add to loaded modules
+        end
+    end
+
+    table.clear(self.Queue) -- clear the queue
 end
 
 function Shared.GetMeta()
