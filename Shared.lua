@@ -1,23 +1,19 @@
 -- not finished!
-local Shared = {}
-local Modules = getmetatable(newproxy(true))
-Shared.__index = Shared
+local Shared = {} -- create the Shared table
+local Modules = getmetatable(newproxy(true)) -- get the metatable of the newproxy
+Shared.__index = Shared -- set __index to itself so we can use metatables
 
-local function safe_require(name)
-    local ok, mod = pcall(require, name)
-    if ok then
-        return mod
-    else
-        return nil
-    end
+local function safe_require(module)
+    local ok, mod = pcall(require, module) -- wrap require in pcall to catch errors
+    return ok and mod or nil -- return module if ok, otherwise nil
 end
 
 local function CopyTable(Table)
-    local t = {}
-    for k, v in pairs(Table) do
-        t[k] = v
+    local t = {} -- create new table
+    for k, v in pairs(Table) do -- loop through destired table to copy
+        t[k] = v -- copy the value and set it's index along with it's value to the new table (Table[Index] = Value)
     end
-    return t
+    return t -- return a copy of the table
 end
 
 function Shared.new()
@@ -110,7 +106,7 @@ function Shared:Init()
 end
 
 function Shared.GetMeta()
-    return Shared.__Meta or error("Shared not setup!")
+    return Shared.__Meta or error("Shared not setup!") -- return the shared object or error if it doesn't exist
 end
 
-return Shared
+return Shared -- return the shared table to the main script
