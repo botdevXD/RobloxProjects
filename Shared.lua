@@ -47,13 +47,43 @@ function Shared:SortQueue()
     
 end
 
+function CopyTable(Table)
+    local t = {}
+    for k, v in pairs(Table) do
+        t[k] = v
+    end
+    return t
+end
+
 function Shared:Init()
     for index, object in ipairs(self.Queue) do -- for each module in queue (modules added by Add)
         local Module = safe_require(object) -- safely attempt to require the module without erroring and stopping the script
         Module = type(Module) == "table" and Module.Priority ~= nil and Module or nil -- if the module is a table and has a priority then return the module else return nil
 
         if Module ~= nil then -- if the module is a table then replace old instance with loaded module
-            self.Queue[index] = Module -- replace the old instance with the loaded module at it's current index within the queue
+            local ModuleCopy = CopyTable(Module)
+
+            setmetatable(Module, {
+                __index = function(_, key)
+                    if key == "GetModule" then
+                        return function (module_name)
+                            return self.LoadedModules[module_name] or nil
+                        end
+                    end
+
+                    return ModuleCopy[key]
+                end,
+                __newindex = function(_, key, value)
+                    if key == "GetModule" then
+                        return warn("Attempt to modify high class function!")
+                    end
+
+                    ModuleCopy[key] = value
+                end
+            })
+
+            self.Queue[index] = Module
+
             self:SortQueue() -- sort the queue by priority (lowest to highest)
         end
     end
