@@ -21,14 +21,21 @@ end
 function Shared:Add(object : Instance, Recursive : any)
     Recursive = type(Recursive) == "boolean" and Recursive or false
 
-    if typeof(object) == "Instance" and Recursive then
-        for _,v in ipairs(object:GetChildren()) do
-            self:Add(v, Recursive)
+    if typeof(object) == "Instance" then
+        
+        if object:IsA("ModuleScript") then
+            table.insert(self.Queue, object)
+        end
+
+        if Recursive then
+            for _,v in ipairs(object:GetChildren()) do
+                self:Add(v, Recursive)
+            end
         end
     end
 end
 
-function Shared:Start()
+function Shared:Init()
     
 end
 
