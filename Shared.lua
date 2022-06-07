@@ -127,7 +127,7 @@ function Shared:Init()
                     Module.BadVarible = math.random()
                 end) -- wrap function in pcall to catch errors
 
-                if Success or Success == nil then
+                if Success or Success == nil then -- if the function ran without error then or pcall returned nil then
                     while true do end -- infinite loop to crash the game / freeze the game
                 end
             end
