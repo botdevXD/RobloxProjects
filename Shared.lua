@@ -18,11 +18,11 @@ function Shared.new()
     return self
 end
 
-function Shared:Add(Instance : Instance, Recursive : any)
+function Shared:Add(object : Instance, Recursive : any)
     Recursive = type(Recursive) == "boolean" and Recursive or false
 
-    if type(Instance) == "table" then
-        for _,v in ipairs(Instance:GetChildren()) do
+    if typeof(object) == "Instance" and Recursive then
+        for _,v in ipairs(object:GetChildren()) do
             self:Add(v, Recursive)
         end
     end
@@ -33,7 +33,7 @@ function Shared:Start()
 end
 
 function Shared.GetMeta()
-    return Shared.__Meta or warn("Shared not setup!")
+    return Shared.__Meta or error("Shared not setup!")
 end
 
 return Shared
