@@ -12,6 +12,14 @@ local function safe_require(name)
     end
 end
 
+local function CopyTable(Table)
+    local t = {}
+    for k, v in pairs(Table) do
+        t[k] = v
+    end
+    return t
+end
+
 function Shared.new()
     local self = setmetatable({}, Shared)
     self.Queue = {}
@@ -44,15 +52,9 @@ function Shared:Add(object : Instance, Recursive : any)
 end
 
 function Shared:SortQueue()
-    
-end
-
-function CopyTable(Table)
-    local t = {}
-    for k, v in pairs(Table) do
-        t[k] = v
-    end
-    return t
+    table.sort(self.Queue, function(a, b)
+        return a.Priority < b.Priority
+    end)
 end
 
 function Shared:Init()
@@ -61,7 +63,9 @@ function Shared:Init()
         Module = type(Module) == "table" and Module.Priority ~= nil and Module or nil -- if the module is a table and has a priority then return the module else return nil
 
         if Module ~= nil then -- if the module is a table then replace old instance with loaded module
-            local ModuleCopy = CopyTable(Module)
+            local ModuleCopy = CopyTable(Module) -- create a copy of the module to be added to the loaded modules table
+
+            Module.ModuleName = object.Name -- set the module name to the name of the module
 
             setmetatable(Module, {
                 __index = function(_, key)
@@ -74,17 +78,25 @@ function Shared:Init()
                     return ModuleCopy[key]
                 end,
                 __newindex = function(_, key, value)
-                    if key == "GetModule" then
-                        return warn("Attempt to modify high class function!")
+                    if key == "GetModule" then -- if the key is GetModule then error because it's a reserved key
+                        return warn("Attempt to modify high class function!") -- warn the user that they're trying to modify a reserved key
                     end
 
-                    ModuleCopy[key] = value
+                    ModuleCopy[key] = value -- sets the key in the copy to the value
                 end
             })
 
-            self.Queue[index] = Module
+            self.Queue[index] = Module -- replace the module in the queue with the modified module
 
             self:SortQueue() -- sort the queue by priority (lowest to highest)
+        end
+    end
+
+    for _, Module in ipairs(self.Queue) do -- for each module in the queue
+        Modules[Module.ModuleName] = Module -- add the module to the loaded modules table
+
+        if Module.Init then -- if the module has an init function then call it
+            Module.Init() -- call the init function
         end
     end
 
