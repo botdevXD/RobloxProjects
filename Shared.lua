@@ -1,11 +1,20 @@
 -- not finished!
 
 local Shared = {}
+local Modules = getmetatable(newproxy(true))
 Shared.__index = Shared
 
 function Shared.new()
     local self = setmetatable({}, Shared)
     self.Queue = {}
+    self.LoadedModules = setmetatable({}, {
+        __index = function(_, ModuleName)
+            return Modules[ModuleName] or nil
+        end,
+        __newindex = function()
+            return error("Attempt to modify read-only table")
+        end
+    })
     return self
 end
 
