@@ -1,5 +1,9 @@
 -- not finished!
-local Shared = {} -- create the Shared table
+local Shared = {
+    Services = {
+        Players = game:GetService("Players")
+    }
+} -- create the Shared table
 local Modules = getmetatable(newproxy(true)) -- get the metatable of the newproxy
 Shared.__index = Shared -- set __index to itself so we can use metatables
 
@@ -97,8 +101,18 @@ function Shared:Init()
     for _, Module in ipairs(self.Queue) do -- for each module in the queue
         Modules[Module.ModuleName] = Module -- add the module to the loaded modules table
 
-        if Module.Init then -- if the module has an init function then call it
+        if type(Module.Init) == "function" then -- if the module has an init function then call it
             Module.Init() -- call the init function
+        end
+
+        if type(Module.PlayerAdded) == "function" then -- if the module has a player added function then call it and connect up to the player added event
+            for _, Player in ipairs(Shared.Services.Players:GetPlayers()) do -- for each player in the game
+                Module:PlayerAdded(Player) -- call the player added function and pass the player as an argument
+            end
+
+            Shared.Services.Players.PlayerAdded:Connect(function(Player) -- connect to the player added event and listen for when a player is added
+                Module.PlayerAdded(Player) -- when player added call the player added function along with the player as the argument
+            end)
         end
     end
 
