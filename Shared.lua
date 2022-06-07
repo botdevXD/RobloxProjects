@@ -21,8 +21,8 @@ local function CopyTable(Table)
 end
 
 function Shared.new()
-    if Shared.GetMeta() then
-        return Shared.__Meta
+    if Shared.GetMeta() then -- if we already have a shared object then return it
+        return Shared.__Meta -- return the shared object
     end
 
     local self = setmetatable({}, Shared)
