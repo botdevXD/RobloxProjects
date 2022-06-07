@@ -43,13 +43,18 @@ function Shared:Add(object : Instance, Recursive : any)
     end
 end
 
+function Shared:SortQueue()
+    
+end
+
 function Shared:Init()
-    for _, object in ipairs(self.Queue) do -- for each module in queue (modules added by Add)
+    for index, object in ipairs(self.Queue) do -- for each module in queue (modules added by Add)
         local Module = safe_require(object) -- safely attempt to require the module without erroring and stopping the script
         Module = type(Module) == "table" and Module.Priority ~= nil and Module or nil -- if the module is a table and has a priority then return the module else return nil
 
-        if Module ~= nil then -- if the module is a table then add it to the loaded modules table
-            Modules[object.Name] = Module -- add to loaded modules
+        if Module ~= nil then -- if the module is a table then replace old instance with loaded module
+            self.Queue[index] = Module -- replace the old instance with the loaded module at it's current index within the queue
+            self:SortQueue() -- sort the queue by priority (lowest to highest)
         end
     end
 
