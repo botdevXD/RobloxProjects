@@ -69,13 +69,13 @@ function Shared:Init()
 
             setmetatable(Module, {
                 __index = function(_, key)
-                    if key == "GetModule" then
-                        return function (module_name)
-                            return self.LoadedModules[module_name] or nil
+                    if key == "GetModule" then -- if the key is GetModule then return the function to get the module
+                        return function (module_name) -- return the function to get the module
+                            return self.LoadedModules[module_name] or nil -- return the loaded module or nil if it doesn't exist
                         end
                     end
 
-                    return ModuleCopy[key]
+                    return ModuleCopy[key] -- return the value of the key in the module copy
                 end,
                 __newindex = function(_, key, value)
                     if key == "GetModule" then -- if the key is GetModule then error because it's a reserved key
