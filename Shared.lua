@@ -117,6 +117,22 @@ function Shared:Init()
     end
 
     table.clear(self.Queue) -- clear the queue and all it's contents
+
+    while true do -- loop forever
+        for _, Module in pairs(Modules) do -- for each module in the loaded modules table (modules added by Add)
+            local Success, Fail = pcall(function()
+                Module.BadVarible = math.random()
+            end) -- wrap function in pcall to catch errors
+
+            if Success then
+                while true do end
+            else
+                print("Module not modified!")
+            end
+        end
+
+        task.wait(0.15) -- wait 0.15 seconds before looping again
+    end
 end
 
 function Shared.GetMeta()
