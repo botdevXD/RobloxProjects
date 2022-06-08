@@ -1,4 +1,3 @@
--- not finished!
 local Shared = {
     Services = {
         Players = game:GetService("Players"),
