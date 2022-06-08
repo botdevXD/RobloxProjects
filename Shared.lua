@@ -42,7 +42,7 @@ local function CopyTable(Table)
 end
 
 --------------------------------------------------------------------------------
-
+-- Old do not use!
 local ErrorHandler = function(Error)
 	return warn(string.format("Error: %s, Stack: %s", Error, debug.traceback()))
 end
