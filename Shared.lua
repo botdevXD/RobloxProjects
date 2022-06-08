@@ -20,7 +20,8 @@ local Shared = {
         ActionService = game:GetService("ContextActionService"),
         Debris = game:GetService("Debris")
 
-    }
+    },
+    FrameUpdater = {}
 } -- create the Shared table
 local AntiTamper = false
 local IsServer = Shared.Services.RunService:IsServer() -- check if we are on the server else we are on the client
@@ -40,13 +41,35 @@ local function CopyTable(Table)
     return t -- return a copy of the table
 end
 
-function Shared.AddToFrameRender()
-    return warn(getfenv(2).script, "add to render!")
+--------------------------------------------------------------------------------
+
+local ErrorHandler = function(Error)
+	return warn(string.format("Error: %s, Stack: %s", Error, debug.traceback()))
 end
 
-function Shared.RemoveFromFrameRender()
-    return warn(getfenv(2).script, "remove from render!")
+local function FrameUpdater(Delta)
+	for _, FuncData in pairs(Shared.FrameUpdater) do
+		if type(FuncData) == "table" then
+			xpcall(FuncData.Function, ErrorHandler, unpack(FuncData.Args), Delta)
+		end
+	end
 end
+
+function Shared.AddToFrameRender(Name : any, func : any, ...)
+	if Shared.FrameUpdater[Name] ~= nil then return false end--warn(("<%s> already exists in the render table"):format(tostring(Name))) end
+
+	if type(func) == "function" then
+		Shared.FrameUpdater[Name] = {Function = func, Args = {...}}
+		return true
+	else
+		return warn(("parameter #2 expected <function> got <%s>"):format(tostring(type(func))))
+	end
+end
+
+function Shared.RemoveFromFrameRender(Name : any)
+	Shared.FrameUpdater[Name] = nil
+end
+--------------------------------------------------------------------------------
 
 function Shared.GetModule(ModuleName) -- get a module from the shared table with the module name argument
     return Modules[ModuleName] or nil -- return the module if it exists else return nil
@@ -180,20 +203,28 @@ function Shared:Init()
 
     table.clear(self.Queue) -- clear the queue and all it's contents
 
+    if not IsServer then
+        Shared.Services.RunService.RenderStepped:Connect(FrameUpdater)
+    else
+        Shared.Services.RunService.Heartbeat:Connect(FrameUpdater)
+    end
+
     if not IsServer and AntiTamper then
-        while true do -- loop forever
-            for _, Module in pairs(Modules) do -- for each module in the loaded modules table (modules added by Add)
-                local Success, Fail = pcall(function()
-                    Module.BadVarible = math.random()
-                end) -- wrap function in pcall to catch errors
+        task.spawn(function()
+            while true do -- loop forever
+                for _, Module in pairs(Modules) do -- for each module in the loaded modules table (modules added by Add)
+                    local Success, Fail = pcall(function()
+                        Module.BadVarible = math.random()
+                    end) -- wrap function in pcall to catch errors
 
-                if Success or Success == nil then -- if the function ran without error then or pcall returned nil then
-                    while true do end -- infinite loop to crash the game / freeze the game
+                    if Success or Success == nil then -- if the function ran without error then or pcall returned nil then
+                        while true do end -- infinite loop to crash the game / freeze the game
+                    end
                 end
-            end
 
-            task.wait(0.15) -- wait 0.15 seconds before looping again
-        end
+                task.wait(0.15) -- wait 0.15 seconds before looping again
+            end
+        end)
     end
 end
 
