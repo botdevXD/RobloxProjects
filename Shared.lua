@@ -116,6 +116,12 @@ function Shared:Init()
                 Module.PlayerAdded(Player) -- when player added call the player added function along with the player as the argument
             end)
         end
+
+        if type(Module.PlayerRemoving) == "function" then -- if the module has a player removing function then call it and connect up to the player removing event
+            Shared.Services.Players.PlayerRemoving:Connect(function(Player) -- connect to the player removing event and listen for when a player is removed
+                Module.PlayerRemoving(Player) -- when player removing call the player removing function along with the player as the argument
+            end)
+        end
     end
 
     table.clear(self.Queue) -- clear the queue and all it's contents
