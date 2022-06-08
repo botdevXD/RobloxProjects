@@ -22,6 +22,10 @@ local function CopyTable(Table)
     return t -- return a copy of the table
 end
 
+function Shared.GetModule(ModuleName) -- get a module from the shared table with the module name argument
+    return Modules[ModuleName] or nil -- return the module if it exists else return nil
+end
+
 function Shared.new()
     if Shared.__Meta ~= nil then -- if we already have a shared object then return it
         return Shared.__Meta -- return the shared object
@@ -31,7 +35,7 @@ function Shared.new()
     self.Queue = {} -- empty table to hold the queued modules
     self.LoadedModules = setmetatable({}, {
         __index = function(_, ModuleName) -- create custom __index metamethod to return the module if it's already loaded or nil if it's not
-            return Modules[ModuleName] or nil -- if the module is already loaded then return it, otherwise return nil
+            return Shared.GetModule(ModuleName) -- if the module is already loaded then return it, otherwise return nil
         end,
         __newindex = function() -- create custom __newindex metamethod to prevent new modules from being added and to prevent modules from being overwritten
             return error("Attempt to modify read-only table") -- throw an error if someone tries to add a module / overwrite a module
@@ -79,7 +83,7 @@ function Shared:Init()
                 __index = function(_, key) -- create our own index metatable to allow us to access the module's functions and properties
                     if key == "GetModule" then -- if the key is GetModule then return the function to get the module
                         return function (module_name) -- return the function to get the module
-                            return self.LoadedModules[module_name] or nil -- return the loaded module or nil if it doesn't exist
+                            return Shared.GetModule(module_name) -- return the loaded module or nil if it doesn't exist
                         end
                     end
 
