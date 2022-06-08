@@ -1,9 +1,28 @@
 local Shared = {
     Services = {
-        Players = game:GetService("Players"),
-        RunService = game:GetService("RunService")
+        GuiService = game:GetService("GuiService"),
+        PlayerService = game:GetService("Players"),
+        ReplicatedStorage = game:GetService("ReplicatedStorage"),
+        ReplicatedFirst = game:GetService("ReplicatedFirst"),
+        Lighting = game:GetService("Lighting"),
+        WorkspaceService = game:GetService("Workspace"),
+        ServerScriptService = game:GetService("ServerScriptService"),
+        TeamsService = game:GetService("Teams"),
+        ServerStorage = game:GetService("ServerStorage"),
+        RunService = game:GetService("RunService"),
+        MessageService = game:GetService("MessagingService"),
+        HttpService = game:GetService("HttpService"),
+        DataStoreService = game:GetService("DataStoreService"),
+        TeleportService = game:GetService("TeleportService"),
+        TextService = game:GetService("TextService"),
+        UserInputService = game:GetService("UserInputService"),
+        TweenService = game:GetService("TweenService"),
+        ActionService = game:GetService("ContextActionService"),
+        Debris = game:GetService("Debris")
+
     }
 } -- create the Shared table
+local AntiTamper = false
 local IsServer = Shared.Services.RunService:IsServer() -- check if we are on the server else we are on the client
 local Modules = getmetatable(newproxy(true)) -- get the metatable of the newproxy
 Shared.__index = Shared -- set __index to itself so we can use metatables
@@ -19,6 +38,14 @@ local function CopyTable(Table)
         t[k] = v -- copy the value and set it's index along with it's value to the new table (Table[Index] = Value)
     end
     return t -- return a copy of the table
+end
+
+function Shared.AddToFrameRender()
+    return warn(getfenv(2).script, "add to render!")
+end
+
+function Shared.RemoveFromFrameRender()
+    return warn(getfenv(2).script, "remove from render!")
 end
 
 function Shared.GetModule(ModuleName) -- get a module from the shared table with the module name argument
@@ -56,27 +83,38 @@ function Shared:Add(object : Instance, Recursive : any)
 
         if Recursive then -- if recursive is true then add all of the module's children to the queue
             for _,v in ipairs(object:GetChildren()) do -- for each child of the object
-                self:Add(v, Recursive) -- add the child to the queue while going through the childs children
+                self:Add(v, false) -- add the child to the queue while going through the childs children
             end
         end
     end
 end
 
 function Shared:SortQueue()
-    table.sort(self.Queue, function(a, b)
-        return a.Priority < b.Priority -- sort the queue by priority in ascending order (lowest priority first)
+    table.sort(self.Queue, function(Table1, Table2)
+        local A =  type(Table1) == "table" and Table1.LoadPosition or nil
+        A = type(Table1) == "table" and A == nil and Table1.Priority or A
+
+        local B =  type(Table2) == "table" and Table2.LoadPosition or nil
+        B = type(Table2) == "table" and B == nil and Table2.Priority or B
+
+        A = A or 0
+        B = B or 0
+        return A < B -- sort the queue by priority / LoadPosition in ascending order (lowest priority first)
     end)
 end
 
 function Shared:Init()
     for index, object in ipairs(self.Queue) do -- for each module in queue (modules added by Add)
+        local LoadTime = tick()
         local Module = safe_require(object) -- safely attempt to require the module without erroring and stopping the script
-        Module = type(Module) == "table" and Module.Priority ~= nil and Module or nil -- if the module is a table and has a priority then return the module else return nil
+        local CanPass = type(Module) == "table" and Module.Priority ~= nil and true or false -- if the module is a table and has a priority then return the module else return nil
+        CanPass = type(Module) == "table" and CanPass == false and Module.LoadPosition ~= nil and true or CanPass -- if the module is a table and has a loadposition then return the module else return first module check
 
-        if Module ~= nil then -- if the module is a table then replace old instance with loaded module
+        if type(Module) == "table" and CanPass then -- if the module is a table then replace old instance with loaded module
             local ModuleCopy = CopyTable(Module) -- create a copy of the module to be added to the loaded modules table
 
-            Module.ModuleName = object.Name -- set the module name to the name of the module
+            ModuleCopy.ModuleName = object.Name -- set the module name to the name of the module
+            ModuleCopy.LoadTime = tostring(tick() - LoadTime) -- set the module name to the name of the module
 
             setmetatable(Module, {
                 __index = function(_, key) -- create our own index metatable to allow us to access the module's functions and properties
@@ -84,52 +122,65 @@ function Shared:Init()
                         return function (module_name) -- return the function to get the module
                             return Shared.GetModule(module_name) -- return the loaded module or nil if it doesn't exist
                         end
+                    elseif key == "Services" then -- if the key is Services then return the services table
+                        return Shared.Services -- return the services table
+                    elseif key == "Shared" then -- if the key is Shared then return the shared object
+                        return Shared.__Meta -- return the shared object
                     end
 
                     return ModuleCopy[key] -- return the value of the key in the module copy
                 end,
+
                 __newindex = function(_, key, value) -- create our own new index metatable to allow us to set the module's functions and properties and to prevent them from being changed
-                    if key == "GetModule" then -- if the key is GetModule then error because it's a reserved key
-                        return error("Attempted to modify high class function!") -- warn the user that they're trying to modify a reserved key
+                    if key == "GetModule" or key == "Shared" then -- if the key is GetModule then error because it's a reserved key
+                        return error("Attempted to modify high class function / propertie!") -- warn the user that they're trying to modify a reserved key
                     end
 
-                    return error("Attempted to modify locked table!") -- warn the user that they're trying to modify a locked table
+                    ModuleCopy[key] = value -- set the value of the key in the module copy
+                    --return error("Attempted to modify locked table!") -- warn the user that they're trying to modify a locked table
                 end
             })
 
             self.Queue[index] = Module -- replace the module in the queue with the modified module
-
-            self:SortQueue() -- sort the queue by priority (lowest to highest)
+            Modules[object.Name] = Module -- add the module to the loaded modules table
+        else
+            self.Queue[index] = function()
+                return nil
+            end
         end
     end
 
+    self:SortQueue() -- sort the queue by priority (lowest to highest)
+
     for _, Module in ipairs(self.Queue) do -- for each module in the queue
-        Modules[Module.ModuleName] = Module -- add the module to the loaded modules table
+        if type(Module) == "table" then
+			print( ("Module: %s, LoadPosition: %s, Load Time: %s"):format( Module.ModuleName, tostring(math.floor(Module.LoadPosition or Module.Priority)), tostring(Module.LoadTime) ) )
 
-        if type(Module.Init) == "function" then -- if the module has an init function then call it
-            Module.Init() -- call the init function
-        end
-
-        if type(Module.PlayerAdded) == "function" then -- if the module has a player added function then call it and connect up to the player added event
-            for _, Player in ipairs(Shared.Services.Players:GetPlayers()) do -- for each player in the game
-                Module:PlayerAdded(Player) -- call the player added function and pass the player as an argument
+            if type(Module.Init) == "function" then -- if the module has an init function then call it
+                Module.Init() -- call the init function
             end
 
-            Shared.Services.Players.PlayerAdded:Connect(function(Player) -- connect to the player added event and listen for when a player is added
-                Module.PlayerAdded(Player) -- when player added call the player added function along with the player as the argument
-            end)
-        end
+            if type(Module.PlayerAdded) == "function" then -- if the module has a player added function then call it and connect up to the player added event
+                for _, Player in ipairs(Shared.Services.PlayerService:GetPlayers()) do -- for each player in the game
+                    Module:PlayerAdded(Player) -- call the player added function and pass the player as an argument
+                end
 
-        if type(Module.PlayerRemoving) == "function" then -- if the module has a player removing function then call it and connect up to the player removing event
-            Shared.Services.Players.PlayerRemoving:Connect(function(Player) -- connect to the player removing event and listen for when a player is removed
-                Module.PlayerRemoving(Player) -- when player removing call the player removing function along with the player as the argument
-            end)
+                Shared.Services.PlayerService.PlayerAdded:Connect(function(Player) -- connect to the player added event and listen for when a player is added
+                    Module.PlayerAdded(Player) -- when player added call the player added function along with the player as the argument
+                end)
+            end
+
+            if type(Module.PlayerRemoving) == "function" then -- if the module has a player removing function then call it and connect up to the player removing event
+                Shared.Services.PlayerService.PlayerRemoving:Connect(function(Player) -- connect to the player removing event and listen for when a player is removed
+                    Module.PlayerRemoving(Player) -- when player removing call the player removing function along with the player as the argument
+                end)
+            end
         end
     end
 
     table.clear(self.Queue) -- clear the queue and all it's contents
 
-    if not IsServer then
+    if not IsServer and AntiTamper then
         while true do -- loop forever
             for _, Module in pairs(Modules) do -- for each module in the loaded modules table (modules added by Add)
                 local Success, Fail = pcall(function()
