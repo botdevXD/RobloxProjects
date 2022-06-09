@@ -1,3 +1,5 @@
+-- Made by _Ben#2020 / 0x74_Dev / benthreadgold
+
 local Services = {}
 
 for I,V in pairs(game:FindFirstChild("Instance", true).Parent:GetChildren()) do
@@ -5,3 +7,5 @@ for I,V in pairs(game:FindFirstChild("Instance", true).Parent:GetChildren()) do
 		Services[tostring(V):gsub(" ", "")] = V 
 	end)
 end
+
+return Services
