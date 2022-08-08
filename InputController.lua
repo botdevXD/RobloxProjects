@@ -1,5 +1,3 @@
--- This is not finished!
-
 local InputController = {
     LoadPosition = 0
 }
@@ -7,11 +5,23 @@ InputController.__index = InputController
 
 function InputController.new()
     local self = setmetatable({}, InputController)
+    self.Functions = getmetatable(newproxy(true))
+    self.Signals = getmetatable(newproxy(true))
     return self
 end
 
-function InputController:Add()
-    
+function InputController:Add(Name, Function, ServiceOrSignal, ...)
+    if type(Function) == "function" then
+        if typeof(ServiceOrSignal) == "RBXScriptSignal" then
+            -- InputBegan, InputEnded
+            self.Functions[Name] = Function
+            self.Signals[Name] = ServiceOrSignal:Connect(Function, ...)
+        elseif tostring(ServiceOrSignal) == "ContextActionService" then
+            -- BindAction
+            self.Functions[Name] = Function
+            self.Signals[Name] = ServiceOrSignal:BindAction(Name, Function, ...)
+        end
+    end
 end
 
 function InputController:Enable()
