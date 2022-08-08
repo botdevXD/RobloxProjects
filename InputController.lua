@@ -11,7 +11,7 @@
         print(Input.KeyCode, Engine, "omg broski")
     end, game:GetService("UserInputService").InputBegan)
 
-    InputModule:Disable()
+    InputModule:Enable()
 
     Player.CharacterAdded:Connect(function(Character)
         local Humanoid = Character:WaitForChild("Humanoid", 5)
@@ -53,16 +53,14 @@ function InputController:Add(Name, Function, ServiceOrSignal, ...)
             self.VarArgs[Name] = {...}
             self.Functions[Name] = Function
             self.ServiceOrSignal[Name] = ServiceOrSignal
-            self.Signals[Name] = ServiceOrSignal:Connect(Function, ...) or 9e9
-            self.Connected[Name] = true
+            self.Connected[Name] = false
         elseif tostring(ServiceOrSignal) == "ContextActionService" then
             -- BindAction
 
             self.VarArgs[Name] = {...}
             self.Functions[Name] = Function
             self.ServiceOrSignal[Name] = ServiceOrSignal
-            self.Signals[Name] = Services.ContextActionService:BindAction(Name, Function, ...) or 9e9
-            self.Connected[Name] = true
+            self.Connected[Name] = false
         end
     end
 
