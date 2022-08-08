@@ -1,5 +1,7 @@
 local UserInputService = game:GetService("UserInputService")
-local InputController = {}
+local InputController = {
+    LoadPosition = 0,
+}
 local Services = {
     UserInputService = game:GetService("UserInputService"),
     ContextActionService = game:GetService("ContextActionService")
@@ -33,7 +35,7 @@ function InputController:Add(Name, Function, ServiceOrSignal, ...)
             self.VarArgs[Name] = {...}
             self.Functions[Name] = Function
             self.ServiceOrSignal[Name] = ServiceOrSignal
-            self.Signals[Name] = ServiceOrSignal:BindAction(Name, Function, ...) or 9e9
+            self.Signals[Name] = Services.ContextActionService:BindAction(Name, Function, ...) or 9e9
             self.Connected[Name] = true
         end
     end
