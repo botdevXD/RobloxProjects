@@ -64,7 +64,9 @@ local ExampleCode = [===[
 
 local AnimationFunctions = {}
 local AnimationEndTrackFunctions = {}
-local AnimationController = {}
+local AnimationController = {
+    LoadPosition = 0
+}
 AnimationController.__index = AnimationController
 AnimationFunctions.__index = AnimationFunctions
 AnimationEndTrackFunctions.__index = AnimationEndTrackFunctions
