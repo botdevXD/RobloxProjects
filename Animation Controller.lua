@@ -64,9 +64,7 @@ local ExampleCode = [===[
 
 local AnimationFunctions = {}
 local AnimationEndTrackFunctions = {}
-local AnimationController = {
-    LoadPosition = 0
-}
+local AnimationController = {}
 AnimationController.__index = AnimationController
 AnimationFunctions.__index = AnimationFunctions
 AnimationEndTrackFunctions.__index = AnimationEndTrackFunctions
@@ -84,7 +82,7 @@ function AnimationController.GetControllerWithScope(Operator : Instance, scope :
     for _, ControllerData in ipairs(Controllers) do
         local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
 
-        if ControllerOperator == Operator then
+        if ControllerOperator == Operator and ControllerData.scope == scope then
             return ControllerData
         end
     end
@@ -182,6 +180,20 @@ function AnimationFunctions:Finished(Func : any, ...)
     return self
 end
 
+function AnimationFunctions:IsPlaying()
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+	if Controller ~= nil then
+		if self.AnimationInstance ~= nil then
+			return self.AnimationInstance.IsPlaying
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
+
+	return self
+end
+
 function AnimationFunctions:Play()
     local Controller = AnimationController.GetController(self.Operator, self.scope)
 
@@ -238,6 +250,18 @@ function AnimationFunctions:SetSpeed(NewSpeed : number)
         return warn("Animation controller doesn't exist")
     end
     return self
+end
+
+function AnimationFunctions:GetPlayingSpeed()
+    local Controller = AnimationController.GetController(self.Operator, self.scope)
+    if Controller ~= nil then
+        if self.AnimationInstance ~= nil then
+            return self.AnimationInstance.Speed or self.NormalAnimationSpeed
+        end
+    else
+        return 0, warn("Animation controller doesn't exist")
+    end
+    return 0
 end
 
 function AnimationFunctions:GetOriginalSpeed()
@@ -381,6 +405,25 @@ function AnimationController:GetAnimation(Name : string, Options : any)
     end
     
     return nil
+end
+
+function AnimationController:GetAnimationSize(Type)
+	Type = type(Type) == "string" and Type or ""
+	
+	local Size = 0
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+
+	if Controller ~= nil then
+		for _, Animation in ipairs(self.Animations) do
+			if Type == Animation.Type then
+				Size += 1
+			end
+		end
+	else
+		return nil, warn("Animation controller doesn't exist")
+	end
+
+	return Size
 end
 
 function AnimationController:StopAll()
