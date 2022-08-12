@@ -64,9 +64,7 @@ local ExampleCode = [===[
 
 local AnimationFunctions = {}
 local AnimationEndTrackFunctions = {}
-local AnimationController = {
-    LoadPosition = 0
-}
+local AnimationController = {}
 AnimationController.__index = AnimationController
 AnimationFunctions.__index = AnimationFunctions
 AnimationEndTrackFunctions.__index = AnimationEndTrackFunctions
@@ -480,6 +478,7 @@ function AnimationController:Reload()
                     ANI_OBJ.AnimationId = Animation.AnimationId
                     
                     local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
+                    Loaded:Stop()
 
                     rawset(Animation, "NormalAnimationSpeed", Loaded.Speed)
                     rawset(Animation, "AnimationInstance", Loaded)
