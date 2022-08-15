@@ -71,113 +71,115 @@ AnimationEndTrackFunctions.__index = AnimationEndTrackFunctions
 
 local Controllers = getmetatable(newproxy(true))
 
-local function GetCharacter(Player : Instance)
-	local _S, _F  = pcall(function()
+local function GetCharacter(Player: Instance)
+	local _S, _F = pcall(function()
 		Player = Player.Character
 	end)
 	return Player
 end
 
-function AnimationController.GetControllerWithScope(Operator : Instance, scope : string)
-    for _, ControllerData in ipairs(Controllers) do
-        local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
+function AnimationController.GetControllerWithScope(Operator: Instance, scope: string)
+	for _, ControllerData in ipairs(Controllers) do
+		local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
 
-        if ControllerOperator == Operator and ControllerData.scope == scope then
-            return ControllerData
-        end
-    end
+		if ControllerOperator == Operator and ControllerData.scope == scope then
+			return ControllerData
+		end
+	end
 
-    return nil
+	return nil
 end
 
-function AnimationController.new(Operator : Instance, Options : any)
-    Options = type(Options) == "table" and Options or {}
-    Options.scope = type(Options.scope) == "string" and Options.scope or ""
+function AnimationController.new(Operator: Instance, Options: any)
+	Options = type(Options) == "table" and Options or {}
+	Options.scope = type(Options.scope) == "string" and Options.scope or ""
 
-    local CurrentController = AnimationController.GetControllerWithScope(Operator, Options.scope)
-    
-    if CurrentController ~= nil then return CurrentController end
+	local CurrentController = AnimationController.GetControllerWithScope(Operator, Options.scope)
 
-    local self = setmetatable({}, AnimationController)
-    self.Operator = Operator
-    self.Animations = {}
-    self.scope = Options.scope
+	if CurrentController ~= nil then
+		return CurrentController
+	end
 
-    table.insert(Controllers, self)
-    return self
+	local self = setmetatable({}, AnimationController)
+	self.Operator = Operator
+	self.Animations = {}
+	self.scope = Options.scope
+
+	table.insert(Controllers, self)
+	return self
 end
 
-function AnimationController.GetControllersForOperator(Operator : Instance)
-    local ControllerResults = {}
+function AnimationController.GetControllersForOperator(Operator: Instance)
+	local ControllerResults = {}
 
-    for _, ControllerData in ipairs(Controllers) do
-        local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
+	for _, ControllerData in ipairs(Controllers) do
+		local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
 
-        if ControllerOperator == Operator then
-            table.insert(ControllerResults, ControllerData)
-        end
-    end
+		if ControllerOperator == Operator then
+			table.insert(ControllerResults, ControllerData)
+		end
+	end
 
-    return ControllerResults
+	return ControllerResults
 end
 
-function AnimationController.ReloadAllControllers(Operator : Instance)
-    local Results = AnimationController.GetControllersForOperator(Operator)
+function AnimationController.ReloadAllControllers(Operator: Instance)
+	local Results = AnimationController.GetControllersForOperator(Operator)
 
-    if #Results > 0 then
-        for _, AnimationObject in ipairs(Results) do
-            AnimationObject:Reload()
-        end
-    end
+	if #Results > 0 then
+		for _, AnimationObject in ipairs(Results) do
+			AnimationObject:Reload()
+		end
+	end
 end
 
-function AnimationController.GetController(Operator  : Instance, scope : any)
-    scope = type(scope) == "string" and scope or ""
+function AnimationController.GetController(Operator: Instance, scope: any)
+	scope = type(scope) == "string" and scope or ""
 
-    return Operator ~= nil and AnimationController.GetControllerWithScope(Operator, scope) or nil
+	return Operator ~= nil and AnimationController.GetControllerWithScope(Operator, scope) or nil
 end
 
 -----------------------------------------
 -- Animation functions (None Controller)
-function AnimationFunctions:AddMarkerHit(MarkerName : string, Func : any, ...)
-    -- Start here
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+function AnimationFunctions:AddMarkerHit(MarkerName: string, Func: any, ...)
+	-- Start here
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
-        self.Markers[MarkerName] = {Function = Func, Args = {...}}
-    else
-        return warn("Animation controller doesn't exist")
-    end
+	if Controller ~= nil then
+		self.Markers[MarkerName] = { Function = Func, Args = { ... } }
+	else
+		return warn("Animation controller doesn't exist")
+	end
 
-    return self
+	return self
 end
 
-function AnimationFunctions:Stopped(Func : any, ...)
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+function AnimationFunctions:Stopped(Func: any, ...)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
-        if self.StoppedFunctions ~= nil then
-            self.StoppedFunctions[#self.StoppedFunctions + 1] = {Function = Func, Args = {...}}
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
+	if Controller ~= nil then
+		if self.StoppedFunctions ~= nil then
+			self.StoppedFunctions[#self.StoppedFunctions + 1] = { Function = Func, Args = { ... } }
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
 
-    return self
+	return self
 end
 
-function AnimationFunctions:Finished(Func : any, ...)
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+function AnimationFunctions:Finished(Func: any, ...)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
-        if self.FinishedQueue ~= nil then
-            self.FinishedQueue[#self.FinishedQueue + 1] = {Function = Func, Args = {...}}
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
+	if Controller ~= nil then
+		if self.FinishedQueue ~= nil then
+			self.FinishedQueue[#self.FinishedQueue + 1] = { Function = Func, Args = { ... } }
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
 
-    return self
+	return self
 end
 
 function AnimationFunctions:IsPlaying()
@@ -195,221 +197,224 @@ function AnimationFunctions:IsPlaying()
 end
 
 function AnimationFunctions:Play()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
+	if Controller ~= nil then
 		if self.AnimationInstance ~= nil then
 			if not self.AnimationInstance.IsPlaying then
-                self:DestroySignals()
+				self:DestroySignals()
 
-	            table.insert(self.Signals, self.AnimationInstance.Changed:Connect(function()
-	                if not self.AnimationInstance.IsPlaying then
-	                    for _, FuncData in ipairs(self.FinishedQueue) do
-	                        if type(FuncData) == "table" then
-                                if type(FuncData.Function) == "function" then
-	                                pcall(FuncData.Function, unpack(FuncData.Args))
-                                end
-	                        end
-	                    end
-	                end
-	            end))
+				table.insert(
+					self.Signals,
+					self.AnimationInstance.Changed:Connect(function()
+						if not self.AnimationInstance.IsPlaying then
+							for _, FuncData in ipairs(self.FinishedQueue) do
+								if type(FuncData) == "table" then
+									if type(FuncData.Function) == "function" then
+										pcall(FuncData.Function, unpack(FuncData.Args))
+									end
+								end
+							end
+						end
+					end)
+				)
 
-	            for Index, Value in pairs(self.Markers) do
-	                Index = tostring(Index)
+				for Index, Value in pairs(self.Markers) do
+					Index = tostring(Index)
 
-	                if type(Value) == "table" and self.Signals[Index] == nil then
-	                    self.Signals[Index] = self.AnimationInstance:GetMarkerReachedSignal(Index):Connect(function(...)
-	                        for MarkerName, _ in pairs(self.Markers) do
-	                            if tostring(MarkerName) == Index then
-	                                return Value.Function(unpack(Value.Args), ...)
-	                            end
-	                        end
-	                    end)
-	                end
-	            end
+					if type(Value) == "table" and self.Signals[Index] == nil then
+						self.Signals[Index] = self.AnimationInstance:GetMarkerReachedSignal(Index):Connect(function(...)
+							for MarkerName, _ in pairs(self.Markers) do
+								if tostring(MarkerName) == Index then
+									return Value.Function(unpack(Value.Args), ...)
+								end
+							end
+						end)
+					end
+				end
 
 				self.AnimationInstance:Play()
 			end
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
 
-    return self
+	return self
 end
 
-function AnimationFunctions:SetSpeed(NewSpeed : number)
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        if self.AnimationInstance ~= nil then
-            NewSpeed = type(NewSpeed) == "number" and NewSpeed or self.AnimationInstance.Speed
-            
-            self.AnimationInstance:AdjustSpeed(NewSpeed)
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-    return self
+function AnimationFunctions:SetSpeed(NewSpeed: number)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		if self.AnimationInstance ~= nil then
+			NewSpeed = type(NewSpeed) == "number" and NewSpeed or self.AnimationInstance.Speed
+
+			self.AnimationInstance:AdjustSpeed(NewSpeed)
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
+	return self
 end
 
 function AnimationFunctions:GetPlayingSpeed()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        if self.AnimationInstance ~= nil then
-            return self.AnimationInstance.Speed or self.NormalAnimationSpeed
-        end
-    else
-        return 0, warn("Animation controller doesn't exist")
-    end
-    return 0
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		if self.AnimationInstance ~= nil then
+			return self.AnimationInstance.Speed or self.NormalAnimationSpeed
+		end
+	else
+		return 0, warn("Animation controller doesn't exist")
+	end
+	return 0
 end
 
 function AnimationFunctions:GetOriginalSpeed()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        if self.AnimationInstance ~= nil then
-            return self.NormalAnimationSpeed or 0
-        end
-    else
-        return 0, warn("Animation controller doesn't exist")
-    end
-    return 0
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		if self.AnimationInstance ~= nil then
+			return self.NormalAnimationSpeed or 0
+		end
+	else
+		return 0, warn("Animation controller doesn't exist")
+	end
+	return 0
 end
 
 function AnimationFunctions:Stop()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        self:DestroySignals()
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		self:DestroySignals()
 
-        if self.AnimationInstance ~= nil then
-            self.AnimationInstance:Stop()
+		if self.AnimationInstance ~= nil then
+			self.AnimationInstance:Stop()
 
-            for _, FuncData in ipairs(self.StoppedFunctions) do
-                if type(FuncData) == "table" then
-                    if type(FuncData.Function) == "function" then
-                        FuncData.Function(unpack(FuncData.Args))
-                    end
-                end
-            end
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-    return self
+			for _, FuncData in ipairs(self.StoppedFunctions) do
+				if type(FuncData) == "table" then
+					if type(FuncData.Function) == "function" then
+						FuncData.Function(unpack(FuncData.Args))
+					end
+				end
+			end
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
+	return self
 end
 
 function AnimationFunctions:Pause()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        if self.OldAnimationSpeed == nil then
-            self.OldAnimationSpeed = self.AnimationInstance.Speed
-        end
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		if self.OldAnimationSpeed == nil then
+			self.OldAnimationSpeed = self.AnimationInstance.Speed
+		end
 
-        self.AnimationInstance:AdjustSpeed(0)
-    else
-        return warn("Animation controller doesn't exist")
-    end
-    return self
+		self.AnimationInstance:AdjustSpeed(0)
+	else
+		return warn("Animation controller doesn't exist")
+	end
+	return self
 end
 
 function AnimationFunctions:Resume()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        if self.OldAnimationSpeed ~= nil then
-            self.AnimationInstance:AdjustSpeed(self.OldAnimationSpeed)
-            self.OldAnimationSpeed = nil
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-    return self
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		if self.OldAnimationSpeed ~= nil then
+			self.AnimationInstance:AdjustSpeed(self.OldAnimationSpeed)
+			self.OldAnimationSpeed = nil
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
+	return self
 end
 
 function AnimationFunctions:Remove()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
-        if self.AnimationName ~= nil then
-            self:DestroySignals()
-            self:Stop()
+	if Controller ~= nil then
+		if self.AnimationName ~= nil then
+			self:DestroySignals()
+			self:Stop()
 
-            table.clear(self.FinishedQueue)
-            table.clear(self.StoppedFunctions)
-            table.clear(self.Signals)
-            table.clear(self.Markers)
+			table.clear(self.FinishedQueue)
+			table.clear(self.StoppedFunctions)
+			table.clear(self.Signals)
+			table.clear(self.Markers)
 
-            for AnimationIndex, AnimationData_ in ipairs(Controller.Animations) do
-                if AnimationData_.Type == self.Type and AnimationData_.AnimationName == self.AnimationName then
-                    table.remove(Controller.Animations, AnimationIndex)
-                end
-            end
+			for AnimationIndex, AnimationData_ in ipairs(Controller.Animations) do
+				if AnimationData_.Type == self.Type and AnimationData_.AnimationName == self.AnimationName then
+					table.remove(Controller.Animations, AnimationIndex)
+				end
+			end
 
-            table.clear(self)
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
-    
-    return Controller
+			table.clear(self)
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
+
+	return Controller
 end
 
 function AnimationFunctions:DestroySignals()
-    if type(self.Signals) == "table" then
-        for I, V in pairs(self.Signals) do
-            if typeof(V) == "RBXScriptConnection" then
-                V:Disconnect()
-            end
-        end
+	if type(self.Signals) == "table" then
+		for I, V in pairs(self.Signals) do
+			if typeof(V) == "RBXScriptConnection" then
+				V:Disconnect()
+			end
+		end
 
-        table.clear(self.Signals)
-    end
+		table.clear(self.Signals)
+	end
 end
 -------------------------------------------
 -- Animation functions (Controller)
-function AnimationController:Exists(Name : string, Options : any)
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+function AnimationController:Exists(Name: string, Options: any)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
-        local Animation = self:GetAnimation(Name, Options)
-        
-        if Animation ~= nil then
-            return true
-        end
-    else
-        return false, warn("Animation controller doesn't exist")
-    end
+	if Controller ~= nil then
+		local Animation = self:GetAnimation(Name, Options)
 
-    return false
+		if Animation ~= nil then
+			return true
+		end
+	else
+		return false, warn("Animation controller doesn't exist")
+	end
+
+	return false
 end
 
-function AnimationController:GetAnimation(Name : string, Options : any)
-    Options = type(Options) == "table" and Options or {}
-    Options.Type = type(Options.Type) == "string" and Options.Type or ""
+function AnimationController:GetAnimation(Name: string, Options: any)
+	Options = type(Options) == "table" and Options or {}
+	Options.Type = type(Options.Type) == "string" and Options.Type or ""
 
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
-        for _, Animation in ipairs(self.Animations) do
-            if Animation.AnimationName == Name then
-                if Options.Type ~= "" then
-                    if Options.Type == Animation.Type then
-                        return Animation
-                    end
-                else
-                    return Animation
-                end
-            end
-        end
-    else
-        return nil, warn("Animation controller doesn't exist")
-    end
-    
-    return nil
+	if Controller ~= nil then
+		for _, Animation in ipairs(self.Animations) do
+			if Animation.AnimationName == Name then
+				if Options.Type ~= "" then
+					if Options.Type == Animation.Type then
+						return Animation
+					end
+				else
+					return Animation
+				end
+			end
+		end
+	else
+		return nil, warn("Animation controller doesn't exist")
+	end
+
+	return nil
 end
 
 function AnimationController:GetAnimationSize(Type)
 	Type = type(Type) == "string" and Type or ""
-	
+
 	local Size = 0
 	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
@@ -427,159 +432,161 @@ function AnimationController:GetAnimationSize(Type)
 end
 
 function AnimationController:StopAll()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
 
-    if Controller ~= nil then
-        for _, Animation in ipairs(self.Animations) do
-            if Animation.AnimationInstance ~= nil then
-                Animation:DestroySignals()
-                Animation:Stop()
-            end
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
+	if Controller ~= nil then
+		for _, Animation in ipairs(self.Animations) do
+			if Animation.AnimationInstance ~= nil then
+				Animation:DestroySignals()
+				Animation:Stop()
+			end
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
 end
 
-function AnimationController:StopAnimationType(Type : string, Blacklist : any)
-    if Type == nil or #tostring(Type) <= 0 then return warn("<Type> cannot be empty nor nil!") end
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        Blacklist = type(Blacklist) == "table" and Blacklist or {}
+function AnimationController:StopAnimationType(Type: string, Blacklist: any)
+	if Type == nil or #tostring(Type) <= 0 then
+		return warn("<Type> cannot be empty nor nil!")
+	end
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		Blacklist = type(Blacklist) == "table" and Blacklist or {}
 
-        for _, Animation in ipairs(self.Animations) do
-            if type(Animation) == "table" then
-                if Animation.Type == tostring(Type) then
-                    if not table.find(Blacklist, Animation) then
-                        Animation:DestroySignals()
-                        Animation:Stop()
-                    end
-                end
-            end
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
+		for _, Animation in ipairs(self.Animations) do
+			if type(Animation) == "table" then
+				if Animation.Type == tostring(Type) then
+					if not table.find(Blacklist, Animation) then
+						Animation:DestroySignals()
+						Animation:Stop()
+					end
+				end
+			end
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
 end
 
 function AnimationController:Reload()
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        local Character = GetCharacter(self.Operator)
-        local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
-        
-        if Humanoid ~= nil then
-            for _, Animation in ipairs(self.Animations) do
-                if type(Animation) == "table" then
-                    Animation:Stop()
-                    Animation:DestroySignals()
-                    
-                    local ANI_OBJ = Instance.new("Animation", nil)
-                    ANI_OBJ.AnimationId = Animation.AnimationId
-                    
-                    local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
-                    Loaded:Stop()
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		local Character = GetCharacter(self.Operator)
+		local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
 
-                    rawset(Animation, "NormalAnimationSpeed", Loaded.Speed)
-                    rawset(Animation, "AnimationInstance", Loaded)
-                    
-                    ANI_OBJ:Destroy()
-                end
-            end
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
+		if Humanoid ~= nil then
+			for _, Animation in ipairs(self.Animations) do
+				if type(Animation) == "table" then
+					Animation:Stop()
+					Animation:DestroySignals()
+
+					local ANI_OBJ = Instance.new("Animation", nil)
+					ANI_OBJ.AnimationId = Animation.AnimationId
+
+					local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
+					Loaded:Stop()
+
+					rawset(Animation, "NormalAnimationSpeed", Loaded.Speed)
+					rawset(Animation, "AnimationInstance", Loaded)
+
+					ANI_OBJ:Destroy()
+				end
+			end
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
 end
 
 function AnimationController:Destroy()
-    for _, Animation in ipairs(type(self.Animations) == "table" and self.Animations or {}) do
-        Animation:DestroySignals()
-        Animation:Remove()
-    end
+	for _, Animation in ipairs(type(self.Animations) == "table" and self.Animations or {}) do
+		Animation:DestroySignals()
+		Animation:Remove()
+	end
 
-    table.clear(type(self.Animations) == "table" and self.Animations or {})
+	table.clear(type(self.Animations) == "table" and self.Animations or {})
 
-    for ControllerIndex, ControllerData in ipairs(Controllers) do
-        local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
+	for ControllerIndex, ControllerData in ipairs(Controllers) do
+		local ControllerOperator = type(ControllerData) == "table" and ControllerData.Operator
 
-        if ControllerOperator == self.Operator then
-            table.remove(Controllers, ControllerIndex)
-            break
-        end
-    end
-    
-    table.clear(self)
+		if ControllerOperator == self.Operator then
+			table.remove(Controllers, ControllerIndex)
+			break
+		end
+	end
+
+	table.clear(self)
 end
 
-function AnimationController:Add(AnimationData : table)
-    local Controller = AnimationController.GetController(self.Operator, self.scope)
-    if Controller ~= nil then
-        AnimationData = type(AnimationData) == "table" and AnimationData or {}
-        AnimationData.Type = type(AnimationData.Type) == "string" and AnimationData.Type or ""
+function AnimationController:Add(AnimationData: table)
+	local Controller = AnimationController.GetController(self.Operator, self.scope)
+	if Controller ~= nil then
+		AnimationData = type(AnimationData) == "table" and AnimationData or {}
+		AnimationData.Type = type(AnimationData.Type) == "string" and AnimationData.Type or ""
 
-        --#Quick Add animation Optimize
-        for _, V in pairs(AnimationController.GetControllersForOperator(self.Operator)) do
-            if type(V) == "table" then
-                if V.Animations ~= nil then
-                    local FoundSameAnimation = nil
+		--#Quick Add animation Optimize
+		for _, V in pairs(AnimationController.GetControllersForOperator(self.Operator)) do
+			if type(V) == "table" then
+				if V.Animations ~= nil then
+					local FoundSameAnimation = nil
 
-                    for _, _AnimationData in pairs(V.Animations) do
-                        if _AnimationData.AnimationId ~= nil then
-                            if _AnimationData.AnimationId == AnimationData.ID then
-                                FoundSameAnimation = _AnimationData
-                                break
-                            end
-                        end
-                    end
+					for _, _AnimationData in pairs(V.Animations) do
+						if _AnimationData.AnimationId ~= nil then
+							if _AnimationData.AnimationId == AnimationData.ID then
+								FoundSameAnimation = _AnimationData
+								break
+							end
+						end
+					end
 
-                    if FoundSameAnimation ~= nil then
-                        return FoundSameAnimation
-                    end
-                end
-            end
-        end
-        --#End of Optimize
+					if FoundSameAnimation ~= nil then
+						return FoundSameAnimation
+					end
+				end
+			end
+		end
+		--#End of Optimize
 
-        if not self:Exists(AnimationData.Name or "", AnimationData) then
-            if self.Operator ~= nil and AnimationData.Name ~= nil then
-                local Character = GetCharacter(self.Operator)
-                local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
-                local _self = setmetatable({}, AnimationFunctions)
-                
-                _self.scope = self.scope
-                _self.Operator = self.Operator
-                _self.AnimationName = AnimationData.Name
-                _self.AnimationId = AnimationData.ID
-                _self.FinishedQueue = {}
-                _self.StoppedFunctions = {}
-                _self.Signals = {}
-                _self.Markers = {}
-                _self.Type = AnimationData.Type
+		if not self:Exists(AnimationData.Name or "", AnimationData) then
+			if self.Operator ~= nil and AnimationData.Name ~= nil then
+				local Character = GetCharacter(self.Operator)
+				local Humanoid = Character ~= nil and Character:FindFirstChild("Humanoid") or nil
+				local _self = setmetatable({}, AnimationFunctions)
 
-                if Humanoid ~= nil then
-                    local ANI_OBJ = Instance.new("Animation", nil)
-                    ANI_OBJ.AnimationId = AnimationData.ID
+				_self.scope = self.scope
+				_self.Operator = self.Operator
+				_self.AnimationName = AnimationData.Name
+				_self.AnimationId = AnimationData.ID
+				_self.FinishedQueue = {}
+				_self.StoppedFunctions = {}
+				_self.Signals = {}
+				_self.Markers = {}
+				_self.Type = AnimationData.Type
 
-                    local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
+				if Humanoid ~= nil then
+					local ANI_OBJ = Instance.new("Animation", nil)
+					ANI_OBJ.AnimationId = AnimationData.ID
 
-                    _self.NormalAnimationSpeed = Loaded.Speed
+					local Loaded = Humanoid:LoadAnimation(ANI_OBJ)
 
-                    _self.AnimationInstance = Loaded
-                    
-                    ANI_OBJ:Destroy()
-                end
+					_self.NormalAnimationSpeed = Loaded.Speed
 
-                table.insert(self.Animations, _self)
+					_self.AnimationInstance = Loaded
 
-                return _self
-            end
-        else
-            return self:GetAnimation(self.Animations, AnimationData)
-        end
-    else
-        return warn("Animation controller doesn't exist")
-    end
+					ANI_OBJ:Destroy()
+				end
+
+				table.insert(self.Animations, _self)
+
+				return _self
+			end
+		else
+			return self:GetAnimation(self.Animations, AnimationData)
+		end
+	else
+		return warn("Animation controller doesn't exist")
+	end
 end
 -----------------------------------------
 
