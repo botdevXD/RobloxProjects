@@ -518,6 +518,29 @@ function AnimationController:Add(AnimationData : table)
         AnimationData = type(AnimationData) == "table" and AnimationData or {}
         AnimationData.Type = type(AnimationData.Type) == "string" and AnimationData.Type or ""
 
+        --#Quick Add animation Optimize
+        for _, V in pairs(AnimationController.GetControllersForOperator(self.Operator)) do
+            if type(V) == "table" then
+                if V.Animations ~= nil then
+                    local FoundSameAnimation = nil
+
+                    for _, _AnimationData in pairs(V.Animations) do
+                        if _AnimationData.AnimationId ~= nil then
+                            if _AnimationData.AnimationId == AnimationData.ID then
+                                FoundSameAnimation = _AnimationData
+                                break
+                            end
+                        end
+                    end
+
+                    if FoundSameAnimation ~= nil then
+                        return FoundSameAnimation
+                    end
+                end
+            end
+        end
+        --#End of Optimize
+
         if not self:Exists(AnimationData.Name or "", AnimationData) then
             if self.Operator ~= nil and AnimationData.Name ~= nil then
                 local Character = GetCharacter(self.Operator)
