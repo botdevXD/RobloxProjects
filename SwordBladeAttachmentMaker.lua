@@ -1,5 +1,3 @@
--- Work in progress, Made by 0x74_Dev / _Ben
-
 local Debris = game:GetService("Debris")
 
 function AddAttachmentsToBlade(Tool, HitBox, Rotation)
@@ -16,20 +14,24 @@ function AddAttachmentsToBlade(Tool, HitBox, Rotation)
 	
 	local YAxis = 0
 	for Index = 1, PartSizeY * 2 do
+		local Direction = Vector3.new(0, 0, 0)
 		
 		local Attachment0 = Instance.new("Attachment", HitBox)
 		local Attachment1 = Instance.new("Attachment", HitBox)
 
 		local Beam = Instance.new("Beam", HitBox)
 		Beam.Attachment0 = Attachment0
-
+		Beam.Width0 = .2
+		Beam.Width1 = .2
+		
 		Attachment0.Name = tostring(Index)
 		Attachment0.WorldCFrame = HitBox.CFrame
 		Attachment0.WorldCFrame = Attachment0.WorldCFrame + Vector3.new(0, ((PartSizeY - 2) / 2) + (-Index / 2) + 1, 0)
 		Attachment0.WorldCFrame *= CFrame.Angles(0, math.rad(90), 0)
+		
 		YAxis += 0.5
 		
-		local RayCast = workspace:Raycast(Origin, Attachment0.WorldCFrame.LookVector * 20, Params);
+		local RayCast = workspace:Raycast(Attachment0.WorldPosition, Attachment0.WorldCFrame.LookVector  * 20, Params);
 
 		if RayCast then
 			
