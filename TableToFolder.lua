@@ -37,5 +37,5 @@ local function Convert(Object, TableName, Parent)
 end
 
 return function(Table : table, FolderName : string, Parent : Instance)
-	local Converted = Convert(Table, FolderName, Parent)
+	return Convert(Table, FolderName, Parent)
 end
