@@ -23,7 +23,6 @@ async function CalculateTotalRobux(Cursor){
             Finished = true;
         }
     }).catch((Error) => {
-        console.log("Caught Get Error", Error)
         if (Cursor){
             CalculateTotalRobux(Cursor)
         }else{
