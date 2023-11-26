@@ -6,6 +6,24 @@ local ragdollModule = {
 }
 ragdollModule.__index = ragdollModule
 
+local states = {
+	Enum.HumanoidStateType.Dead,
+	Enum.HumanoidStateType.Flying,
+	Enum.HumanoidStateType.Ragdoll,
+	Enum.HumanoidStateType.Landed,
+	Enum.HumanoidStateType.Seated,
+	Enum.HumanoidStateType.Jumping,
+	Enum.HumanoidStateType.Running,
+	Enum.HumanoidStateType.Climbing,
+	Enum.HumanoidStateType.Freefall,
+	Enum.HumanoidStateType.Swimming,
+	Enum.HumanoidStateType.GettingUp,
+	Enum.HumanoidStateType.FallingDown,
+	Enum.HumanoidStateType.PlatformStanding,
+	Enum.HumanoidStateType.RunningNoPhysics,
+	Enum.HumanoidStateType.StrafingNoPhysics
+}
+
 local oldPrintFunction = print
 local function print(...)
 	if not ragdollModule.debugging then return end
@@ -48,6 +66,7 @@ function ragdollModule.new(Player)
 	self:SetupConnections()
 	
 	table.insert(self.Connections, self.Player.CharacterAdded:Connect(function()
+		print("new character")
 		self:SetupConnections()
 	end))
 	
@@ -73,7 +92,7 @@ function ragdollModule:BuildJoints()
 
 				table.insert(self.defaultJoints, Joint)
 			end
-		end		
+		end
 
 		print(`defaullt joints for {self.Player.Name}'s character`, self.defaultJoints)
 	end
@@ -112,7 +131,11 @@ function ragdollModule:BuildJoints()
 	end
 end
 
-function ragdollModule:Ragdoll()
+function ragdollModule:Ragdoll(shouldRagdoll)
+	shouldRagdoll = type(shouldRagdoll) ~= "boolean" and true or shouldRagdoll
+	
+	print(shouldRagdoll)
+	
 	if type(self.defaultJoints) ~= "table" or type(self.customJoints) ~= "table" then return end
 	
 	local character = self.Player.Character :: Model
@@ -121,15 +144,21 @@ function ragdollModule:Ragdoll()
 	local humanoid = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid
 	if not humanoid then return end
 	
-	humanoid.AutoRotate = false
+	for _, State in ipairs(states) do
+		humanoid:SetStateEnabled(State, not shouldRagdoll and true or false)
+	end
+	
+	humanoid.AutoRotate = not shouldRagdoll and true or false
 	
 	local allJoints = tableCombine(self.defaultJoints, self.customJoints)
 	
+	print(allJoints)
+	
 	for _, Joint in ipairs(allJoints) do
 		if Joint:IsA("BallSocketConstraint") then
-			Joint.Enabled = true
+			Joint.Enabled = shouldRagdoll and true or false
 		else
-			Joint.Enabled = false
+			Joint.Enabled = not shouldRagdoll and true or false
 		end
 	end
 	
@@ -137,30 +166,10 @@ function ragdollModule:Ragdoll()
 end
 
 function ragdollModule:UnRagdoll()
-	local character = self.Player.Character :: Model
-	if not character then return end
-
-	local humanoid = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid
-	if not humanoid then return end
-
-	humanoid.AutoRotate = true
-	
-	local allJoints = tableCombine(self.defaultJoints, self.customJoints)
-
-	for _, Joint in ipairs(allJoints) do
-		if Joint:IsA("BallSocketConstraint") then
-			Joint.Enabled = false
-		else
-			Joint.Enabled = true
-		end
-	end
-
-	table.clear(allJoints) -- clear off all joints table to the garbage collector to reduce memory after use
+	return self:Ragdoll(false)
 end
 
 function ragdollModule:SetupConnections()
-	self:ClearConnections()
-	
 	local character = self.Player.Character :: Model
 	if not character then return end
 	
