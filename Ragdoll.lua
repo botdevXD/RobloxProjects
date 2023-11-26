@@ -210,6 +210,10 @@ function ragdollModule:Destroy()
 		self:ClearConnections()
 	end
 	
+	if type(self.Attachments) == "table" then
+		table.clear(self.Attachments)
+	end	
+	
 	if type(self.defaultJoints) == "table" then
 		table.clear(self.defaultJoints)
 	end
