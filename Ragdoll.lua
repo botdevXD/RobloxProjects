@@ -2,7 +2,7 @@
 
 local ragdollModule = {
 	cached = {},
-	debugging = false
+	debugging = true
 }
 ragdollModule.__index = ragdollModule
 
@@ -66,7 +66,7 @@ function ragdollModule.new(Player)
 	self:SetupConnections()
 	
 	table.insert(self.Connections, self.Player.CharacterAdded:Connect(function()
-		print("new character")
+		print(`{self.Player.Name}'s character loaded into game`)
 		self:SetupConnections()
 	end))
 	
@@ -127,15 +127,13 @@ function ragdollModule:BuildJoints()
 			table.insert(self.Attachments, attachment1)
 		end
 
-		print("making custom joints!")
+		print(`Creating custom joints for {self.Player.Name}'s character`)
 	end
 end
 
 function ragdollModule:Ragdoll(shouldRagdoll)
 	shouldRagdoll = type(shouldRagdoll) ~= "boolean" and true or shouldRagdoll
-	
-	print(shouldRagdoll)
-	
+
 	if type(self.defaultJoints) ~= "table" or type(self.customJoints) ~= "table" then return end
 	
 	local character = self.Player.Character :: Model
@@ -144,6 +142,11 @@ function ragdollModule:Ragdoll(shouldRagdoll)
 	local humanoid = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid
 	if not humanoid then return end
 	
+	local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart
+	if not humanoidRootPart then return end
+	
+	humanoidRootPart.CanCollide = not shouldRagdoll and true or false
+	
 	for _, State in ipairs(states) do
 		humanoid:SetStateEnabled(State, not shouldRagdoll and true or false)
 	end
@@ -151,8 +154,6 @@ function ragdollModule:Ragdoll(shouldRagdoll)
 	humanoid.AutoRotate = not shouldRagdoll and true or false
 	
 	local allJoints = tableCombine(self.defaultJoints, self.customJoints)
-	
-	print(allJoints)
 	
 	for _, Joint in ipairs(allJoints) do
 		if Joint:IsA("BallSocketConstraint") then
