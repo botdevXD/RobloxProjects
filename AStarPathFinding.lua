@@ -1,13 +1,33 @@
-local thread = require(script.Thread)
-
-local function heuristic(node, goal)
-	local X = math.abs(node.AbsolutePosition.X - goal.AbsolutePosition.X)
-	local Y = math.abs(node.AbsolutePosition.Y - goal.AbsolutePosition.Y)
-	local distance = math.sqrt(X^2 + Y^2)
+local function heuristic(node, goal, _2dCalculation)
+	
+	if _2dCalculation then
+		-- 2D world space calculation for GUI's
+		local X = math.abs(node.AbsolutePosition.X - goal.AbsolutePosition.X)
+		local Y = math.abs(node.AbsolutePosition.Y - goal.AbsolutePosition.Y)
+		local distance = math.sqrt(X^2 + Y^2)
+		return distance
+	end
+	
+	--3D world space calculation
+	
+	local nodePosition = node.Position :: Vector3
+	local nodeX = nodePosition.X
+	local nodeY = nodePosition.Y
+	local nodeZ = nodePosition.Z
+	
+	local goalPosition = goal.Position :: Vector3
+	local goalX = goalPosition.X
+	local goalY = goalPosition.Y
+	local goalZ = goalPosition.Z
+	
+	local distance = math.sqrt(((goalX - nodeX)^2) + ((goalY - nodeY)^2) + ((goalZ - nodeZ)^2))
+	
 	return distance
 end
 
-local function findPath(startPart, endPart, nodesFolder)
+local function findPath(startPart, endPart, nodesFolder, _2dCalculation)
+	_2dCalculation = type(_2dCalculation) == "boolean" and _2dCalculation or false
+	
 	local openList = {}
 	local closedList = {}
 
@@ -22,7 +42,7 @@ local function findPath(startPart, endPart, nodesFolder)
 	for _, node in ipairs(nodes) do
 		if node.part == startPart then
 			startNode = {part = node.part, g = 0, h = 0, f = 0, parent = nil}
-			startNode.h = heuristic(startPart, endPart)
+			startNode.h = heuristic(startPart, endPart, _2dCalculation)
 			startNode.f = startNode.g + startNode.h
 			break
 		end
@@ -36,7 +56,9 @@ local function findPath(startPart, endPart, nodesFolder)
 		for _, neighbour in ipairs(nodes) do
 			if neighbour.part == node then continue end
 			
-			if heuristic(node, neighbour.part) <= 100 then
+			local neighbourDistance = heuristic(node, neighbour.part, _2dCalculation)
+			
+			if neighbourDistance < 85 then
 				table.insert(neighbours, neighbour)
 			end
 		end
@@ -102,8 +124,8 @@ local function findPath(startPart, endPart, nodesFolder)
 			if (isInClosed(Neighbour.part)) then continue end
 			
 			
-			Neighbour.g = heuristic(currentNode.part, Neighbour.part)
-			Neighbour.h = heuristic(Neighbour.part, endPart)
+			Neighbour.g = heuristic(currentNode.part, Neighbour.part, _2dCalculation)
+			Neighbour.h = heuristic(Neighbour.part, endPart, _2dCalculation)
 			Neighbour.f = Neighbour.g + Neighbour.h
 			Neighbour.parent = currentNode
 			
@@ -115,68 +137,4 @@ local function findPath(startPart, endPart, nodesFolder)
 	end
 
 	return nil
-end
-
-local Container = game.StarterGui.ScreenGui.Container
-
-local TotalToMake = 10
-
-local SizeX, SizeY = Container.AbsoluteSize.X, Container.AbsoluteSize.Y
-
-local index = 1
-local grid = {}
-
-for x = 1, TotalToMake do
-	for y = 1, TotalToMake do
-		local newFrame = Instance.new("Frame")
-		newFrame.Size = UDim2.new(0, SizeX / TotalToMake, 0, SizeY / TotalToMake)
-		newFrame.BorderSizePixel = 2
-		newFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		newFrame.Parent = Container
-		newFrame.Name = `{index}`
-		
-		if math.random(1, 100) < 10 then
-			newFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-		else
-			table.insert(grid, newFrame)
-		end
-		
-		index += 1
-	end
-end
-
-table.sort(grid, function(a, b)
-	return tonumber(a.Name) <= tonumber(b.Name)
-end)
-
-while task.wait(.5) do
-	
-	for _, Node in ipairs(grid) do
-		Node.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	end
-	
-	local startNode = nil
-	local endNode = nil
-
-	repeat
-		math.randomseed(tick())
-		startNode = grid[math.random(1, #grid)]
-		endNode = grid[math.random(1, #grid)]
-
-		task.wait()
-	until startNode ~= endNode
-
-	startNode.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-	endNode.BackgroundColor3 = Color3.fromRGB(85, 255, 0)
-
-	local path = findPath(startNode, endNode, grid)
-
-	if path then
-		for _, Node in ipairs(path) do
-			if Node == startNode or Node == endNode then continue end
-
-			Node.BackgroundColor3 = Color3.fromRGB(255, 85, 0)
-		end
-	end
-	
 end
