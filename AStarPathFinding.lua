@@ -1,5 +1,7 @@
-local function heuristic(node, goal, _2dCalculation)
-	
+local aStar = {}
+
+function aStar.heuristic(node, goal, _2dCalculation)
+
 	if _2dCalculation then
 		-- 2D world space calculation for GUI's
 		local X = math.abs(node.AbsolutePosition.X - goal.AbsolutePosition.X)
@@ -7,27 +9,27 @@ local function heuristic(node, goal, _2dCalculation)
 		local distance = math.sqrt(X^2 + Y^2)
 		return distance
 	end
-	
+
 	--3D world space calculation
-	
+
 	local nodePosition = node.Position :: Vector3
 	local nodeX = nodePosition.X
 	local nodeY = nodePosition.Y
 	local nodeZ = nodePosition.Z
-	
+
 	local goalPosition = goal.Position :: Vector3
 	local goalX = goalPosition.X
 	local goalY = goalPosition.Y
 	local goalZ = goalPosition.Z
-	
+
 	local distance = math.sqrt(((goalX - nodeX)^2) + ((goalY - nodeY)^2) + ((goalZ - nodeZ)^2))
-	
+
 	return distance
 end
 
-local function findPath(startPart, endPart, nodesFolder, _2dCalculation)
+function aStar.findPath(startPart, endPart, nodesFolder, _2dCalculation)
 	_2dCalculation = type(_2dCalculation) == "boolean" and _2dCalculation or false
-	
+
 	local openList = {}
 	local closedList = {}
 
@@ -42,30 +44,30 @@ local function findPath(startPart, endPart, nodesFolder, _2dCalculation)
 	for _, node in ipairs(nodes) do
 		if node.part == startPart then
 			startNode = {part = node.part, g = 0, h = 0, f = 0, parent = nil}
-			startNode.h = heuristic(startPart, endPart, _2dCalculation)
+			startNode.h = aStar.heuristic(startPart, endPart, _2dCalculation)
 			startNode.f = startNode.g + startNode.h
 			break
 		end
 	end
-	
+
 	table.insert(openList, startNode)
-	
+
 	local function getNeighbours(node)
 		local neighbours = {}
-		
+
 		for _, neighbour in ipairs(nodes) do
 			if neighbour.part == node then continue end
-			
-			local neighbourDistance = heuristic(node, neighbour.part, _2dCalculation)
-			
+
+			local neighbourDistance = aStar.heuristic(node, neighbour.part, _2dCalculation)
+
 			if neighbourDistance < 85 then
 				table.insert(neighbours, neighbour)
 			end
 		end
-		
+
 		return neighbours
 	end
-	
+
 	local function isInOpen(nodeA)
 		for _, nodeB in ipairs(openList) do
 			if nodeB.part == nodeA then
@@ -75,17 +77,17 @@ local function findPath(startPart, endPart, nodesFolder, _2dCalculation)
 
 		return false
 	end
-	
+
 	local function isInClosed(nodeA)
 		for _, nodeB in ipairs(closedList) do
 			if nodeB.part == nodeA then
 				return true
 			end
 		end
-		
+
 		return false
 	end
-	
+
 	while #openList > 0 do
 
 		local currentNode = openList[1]
@@ -106,7 +108,7 @@ local function findPath(startPart, endPart, nodesFolder, _2dCalculation)
 			local path = {}
 			while currentNode do
 				table.insert(path, currentNode.part)
-				
+
 				local parent = currentNode.parent
 				if parent and not alreadyCheckedParents[parent] then
 					alreadyCheckedParents[parent] = true
@@ -116,19 +118,19 @@ local function findPath(startPart, endPart, nodesFolder, _2dCalculation)
 				end
 
 			end
-			
+
 			return path
 		end
-		
+
 		for _, Neighbour in ipairs(getNeighbours(currentNode.part)) do
 			if (isInClosed(Neighbour.part)) then continue end
-			
-			
-			Neighbour.g = heuristic(currentNode.part, Neighbour.part, _2dCalculation)
-			Neighbour.h = heuristic(Neighbour.part, endPart, _2dCalculation)
+
+
+			Neighbour.g = aStar.heuristic(currentNode.part, Neighbour.part, _2dCalculation)
+			Neighbour.h = aStar.heuristic(Neighbour.part, endPart, _2dCalculation)
 			Neighbour.f = Neighbour.g + Neighbour.h
 			Neighbour.parent = currentNode
-			
+
 			if not isInOpen(Neighbour.part) then
 				table.insert(openList, Neighbour)
 			end
@@ -138,3 +140,5 @@ local function findPath(startPart, endPart, nodesFolder, _2dCalculation)
 
 	return nil
 end
+
+return aStar
