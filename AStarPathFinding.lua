@@ -136,7 +136,7 @@ function aStar.findPath(startPart, endPart, nodesFolder, _2dCalculation, maxDist
 			local hCost = aStar.heuristic(Neighbour.part, endPart, _2dCalculation)
 			local fCost = gCost + hCost
 			
-			if currentNode.g < gCost and currentNode.f <= fCost then
+			if currentNode.g <= gCost and currentNode.f <= fCost then
 				Neighbour.g = gCost
 				Neighbour.h = hCost
 				Neighbour.f = fCost
