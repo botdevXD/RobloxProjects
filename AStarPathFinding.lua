@@ -27,7 +27,9 @@ function aStar.heuristic(node, goal, _2dCalculation)
 	return distance
 end
 
-function aStar.findPath(startPart, endPart, nodesFolder, _2dCalculation)
+function aStar.findPath(startPart, endPart, nodesFolder, _2dCalculation, maxDist, Walls)
+	maxDist = type(maxDist) == "number" and maxDist or 13
+	
 	_2dCalculation = type(_2dCalculation) == "boolean" and _2dCalculation or false
 
 	local openList = {}
@@ -58,7 +60,15 @@ function aStar.findPath(startPart, endPart, nodesFolder, _2dCalculation)
 
 			local neighbourDistance = aStar.heuristic(node, neighbour.part, _2dCalculation)
 
-			if neighbourDistance < 85 then
+			if neighbourDistance < maxDist then
+				
+				local dir = (neighbour.part.Position - node.Position).Unit * neighbourDistance
+
+				local raycast = workspace:Raycast(node.Position, dir)
+
+				if raycast and raycast.Instance:IsDescendantOf(Walls) then
+					continue
+				end
 				table.insert(neighbours, neighbour)
 			end
 		end
@@ -105,32 +115,36 @@ function aStar.findPath(startPart, endPart, nodesFolder, _2dCalculation)
 
 			local path = {}
 			while currentNode do
-				table.insert(path, currentNode.part)
+				table.insert(path, currentNode)
 
-				local parent = currentNode.parent
-				if parent and not alreadyCheckedParents[parent] then
-					alreadyCheckedParents[parent] = true
-					currentNode = parent
-				else
-					currentNode = nil
-				end
+				currentNode = currentNode.parent
 
 			end
+			
+			table.sort(path, function(pathA, pathB)
+				return pathA.f < pathB.f
+			end)
 
 			return path
 		end
 
 		for _, Neighbour in ipairs(getNeighbours(currentNode.part)) do
+			if Neighbour == currentNode then continue end
 			if (isInClosed(Neighbour.part)) then continue end
-
-
-			Neighbour.g = aStar.heuristic(currentNode.part, Neighbour.part, _2dCalculation)
-			Neighbour.h = aStar.heuristic(Neighbour.part, endPart, _2dCalculation)
-			Neighbour.f = Neighbour.g + Neighbour.h
-			Neighbour.parent = currentNode
-
-			if not isInOpen(Neighbour.part) then
-				table.insert(openList, Neighbour)
+			
+			local gCost = currentNode.g + aStar.heuristic(currentNode.part, Neighbour.part, _2dCalculation)
+			local hCost = aStar.heuristic(Neighbour.part, endPart, _2dCalculation)
+			local fCost = gCost + hCost
+			
+			if currentNode.g < gCost and currentNode.f <= fCost then
+				Neighbour.g = gCost
+				Neighbour.h = hCost
+				Neighbour.f = fCost
+				Neighbour.parent = currentNode
+				
+				if not isInOpen(Neighbour.part) then
+					table.insert(openList, Neighbour)
+				end
 			end
 		end
 
