@@ -35,9 +35,7 @@ function aStar.findPath(startPart, endPart, nodesFolder, _2dCalculation)
 
 	local nodes = {}
 	for _, nodePart in ipairs(nodesFolder) do
-		if nodePart:IsA("Frame") then
-			table.insert(nodes, {part = nodePart})
-		end
+		table.insert(nodes, {part = nodePart})
 	end
 
 	local startNode = nil
